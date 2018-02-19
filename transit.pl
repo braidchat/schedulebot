@@ -18,7 +18,11 @@ transit(As) -->
       assoc_to_list(As, Pairs),
       maplist(convert_pairs, Pairs, Ms) },
     [dict(Ms)], !.
-transit(S) --> [str(S)], !.
+transit(time(T)) -->
+    { ground(T),
+      date_time_stamp(T, Ts),
+      TsM is integer(Ts * 1000) },
+    [list([str("~#m"), TsM])], !.
 transit(time(T)) -->
     [list([str("~#m"), TsM])],
     { Ts is TsM / 1000,
@@ -35,6 +39,7 @@ transit(As) -->
 transit(Tl) -->
     [list(L)],
     { maplist(convert, Tl, L) }, !.
+transit(S) --> { var(S) }, [str(S)], !.
 transit(T) --> [T].
 
 
@@ -44,10 +49,13 @@ convert_pairs(Tk-Tv, Mk-Mv) :-
     phrase(transit(Tk), [Mk]),
     phrase(transit(Tv), [Mv]).
 
+/*
 ?- phrase_from_file(msgpack(D), 'test.msgpack', [type(binary)]),
    phrase(transit(T), [D]),
    format('READ ~w~n', [T]),
-   get_assoc(keyword(content), T, Content),
-   format('CONTENT ~w~n', [Content]),
-   phrase(transit(T), [Out]),
-   format('OUT ~w~n', [Out]) .
+   get_assoc(keyword(content), T, Content), format('CONTENT ~w~n', [Content]),
+   get_assoc(keyword(id), T, Id), format('ID ~w~n', [Id]),
+   assoc_to_keys(T, Keys), format('Keys ~w~n', [Keys]),
+   phrase(transit(T), [Out]), format('OUT ~w~n', [Out]),
+   phrase(msgpack(Out), Bytes), format('BYTES ~w~n', [Bytes]).
+*/
