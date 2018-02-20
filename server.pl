@@ -49,6 +49,7 @@ braid_msg_handler(Request) :-
     format('ok.'),
 
     handle_message(Info).
+    %% thread_create(handle_message(Info), _, [debug(true)]).
 
 handle_message(Msg) :-
     reply_to(Msg, "Hi there!", Reply_),
@@ -80,6 +81,10 @@ send_message(Msg) :-
     setting(bot_token, BotToken),
     transit_bytes(Msg, Bytes),
     atom_concat(BraidURL, '/bots/message', URL),
-    http_post(URL,
-              bytes('application/transit+msgpack', Bytes),
-              [authorization(basic(BotId, BotToken))]).
+    catch(
+        http_post(URL,
+                  bytes('application/transit+msgpack', Bytes),
+                  _,
+                  [authorization(basic(BotId, BotToken))]),
+        error(_, context(_, status(201,_))),
+        true).
