@@ -1,13 +1,15 @@
-:- module(server, []).
+:- module(server, [run/1]).
 :- use_module(transit).
+:- use_module(uuid).
 :- use_module(library(assoc)).
 :- use_module(library(http/http_client)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_header)).
-:- use_module(library(http/http_parameters)).
+:- use_module(library(http/http_log)).
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(settings)).
 :- use_module(library(sha)).
+:- use_module(library(uri)).
 
 :- setting(bot_id, atom, '00000000-0000-4000-0000-000000000000', 'Braid bot ID').
 :- setting(bot_token, atom, 'sthasthsnthsnthsnthsth', 'Braid bot token').
@@ -17,29 +19,67 @@ run(Port) :-
     load_settings('config.pl'),
     http_server(http_dispatch, [port(Port)]).
 
-:- http_handler(root(.), braid_msg_handler, []).
 
-braid_msg_handler(Request) :-
-    member(method(post), Request), !,
-    http_read_data(Request, Data, [to(codes)]),
+:- multifile http:location/3.
+:- dynamic http:location/3.
 
+http:location(braid, '/braid', []).
+
+:- http_handler(braid(message), braid_msg_handler, []).
+
+signaturechk(Request, Body) :-
     % Check signature
     member(x_braid_signature(Sig), Request),
     setting(bot_token, BotToken),
-    hmac_sha(BotToken, Data, Hmac, [algorithm(sha256)]),
+    hmac_sha(BotToken, Body, Hmac, [algorithm(sha256)]),
     hash_atom(Hmac, HmacHex),
-    HmacHex = Sig,
+    HmacHex = Sig.
+signaturechk(_) :-
+    !, throw(http_reply(bad_request('Bad Signature'))).
 
+braid_msg_handler(Request) :-
+    member(method(put), Request), !,
+    http_read_data(Request, Data, [to(codes)]),
+
+    signaturechk(Request, Data),
     % Parse transit
     transit_bytes(Info, Data),
 
-    get_assoc(keyword(content), Info, Content),
-    get_assoc(keyword('user-id'), Info, UserId),
-    setting(braid_api_url, ApiURL),
-    setting(bot_id, BotID),
-
     format('Content-type: text/plain~n~n'),
-    format('Sig ~w~n', [HmacHex]),
-    format('Msg ~w from ~w~n', [Content, UserId]),
-    format('Sending to ~w as ~w~n', [ApiURL, BotID]).
-    % verify signature
+    format('ok.'),
+
+    handle_message(Info).
+
+handle_message(Msg) :-
+    reply_to(Msg, "Hi there!", Reply_),
+    get_assoc(keyword('user-id'), Msg, SenderID),
+    put_assoc(keyword('mentioned-user-ids'), Reply_, list([SenderID]), Reply),
+    debug(handler, 'Sending ~k', [Reply]),
+    send_message(Reply).
+
+reply_to(Msg, Content, Reply) :-
+    random_uuid(NewId),
+    put_assoc(keyword(id), Msg, NewId, Reply_),
+    put_assoc(keyword('mentioned-tag-ids'), Reply_, list([]), Reply__),
+    put_assoc(keyword('mentioned-user-ids'), Reply__, list([]), Reply___),
+    text_to_string(Content, ContentStr),
+    put_assoc(keyword(content), Reply___, ContentStr, Reply).
+
+new_message(Msg) :-
+    random_uuid(MsgId),
+    Pairs = [keyword(id)-MsgId,
+             keyword(content)-"",
+             keyword('thread-id')-"",
+             keyword('mentioned-user-ids')-list([]),
+             keyword('mentioned-tag-ids')-list([])],
+    list_to_assoc(Pairs, Msg).
+
+send_message(Msg) :-
+    setting(braid_api_url, BraidURL),
+    setting(bot_id, BotId),
+    setting(bot_token, BotToken),
+    transit_bytes(Msg, Bytes),
+    atom_concat(BraidURL, '/bots/message', URL),
+    http_post(URL,
+              bytes('application/transit+msgpack', Bytes),
+              [authorization(basic(BotId, BotToken))]).

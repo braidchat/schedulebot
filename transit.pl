@@ -1,4 +1,5 @@
 :- module(transit, [transit//1, transit_bytes/2]).
+:- use_module(library(msgpack)).
 :- use_module(library(assoc)).
 
 % Is there some way to unify these two rules? Seems kind of silly to
@@ -51,6 +52,9 @@ convert_pairs(Tk-Tv, Mk-Mv) :-
 transit_bytes(T, Bs) :-
     phrase(msgpack(M), Bs),
     phrase(transit(T), [M]).
+transit_bytes(T, Bs) :-
+    phrase(transit(T), [M]),
+    !, phrase(msgpack(M), Bs).
 
 /*
 :- use_module(libraryy(msgpack)).
