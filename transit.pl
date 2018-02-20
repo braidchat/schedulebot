@@ -31,7 +31,8 @@ transit(time(T)) -->
 transit(uuid(Hi, Lo)) -->
     [list([str("~#u"), list([Hi, Lo])])].
 transit(list(L)) -->
-    [list([str("~#list"), list(L)])].
+    [list([str("~#list"), list(Ll)])],
+    { maplist(convert, L, Ll) } .
 transit(As) -->
     [dict(Ms)],
     { maplist(convert_pairs, Ps, Ms),
@@ -50,9 +51,11 @@ convert_pairs(Tk-Tv, Mk-Mv) :-
     phrase(transit(Tv), [Mv]).
 
 transit_bytes(T, Bs) :-
+    ground(Bs),
     phrase(msgpack(M), Bs),
     phrase(transit(T), [M]).
 transit_bytes(T, Bs) :-
+    ground(T),
     phrase(transit(T), [M]),
     !, phrase(msgpack(M), Bs).
 
