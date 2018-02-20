@@ -81,12 +81,8 @@ send_message(Msg) :-
     setting(bot_token, BotToken),
     transit_bytes(Msg, Bytes),
     atom_concat(BraidURL, '/bots/message', URL),
-    % XXX: http_post considers a 201 response an error, so try to
-    % catch that
-    catch(
-        http_post(URL,
-                  bytes('application/transit+msgpack', Bytes),
-                  _,
-                  [authorization(basic(BotId, BotToken))]),
-        error(_, context(_, status(201,_))),
-        true).
+    http_post(URL,
+              bytes('application/transit+msgpack', Bytes),
+              _,
+              [authorization(basic(BotId, BotToken)),
+               status_code(201)]).
