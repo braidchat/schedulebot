@@ -12,19 +12,23 @@
 :- use_module(library(thread_pool)).
 :- use_module(library(uri)).
 
+% Settings
 :- setting(bot_id, atom, '00000000-0000-4000-0000-000000000000', 'Braid bot ID').
 :- setting(bot_token, atom, 'sthasthsnthsnthsnthsth', 'Braid bot token').
 :- setting(braid_api_url, atom, 'http://localhost:5557', 'Braid API URL').
 
+% Main
 run(Port) :-
     load_settings('config.pl'),
     http_server(http_dispatch, [port(Port)]).
 
+% Thread pool for message handler lazy creation
 :- multifile thread_pool:create_pool/1.
 
 thread_pool:create_pool(message_handler) :-
     thread_pool_create(message_handler, 10, []).
 
+% HTTP Routes
 :- multifile http:location/3.
 :- dynamic http:location/3.
 
@@ -32,6 +36,12 @@ http:location(braid, '/braid', []).
 
 :- http_handler(braid(message), braid_msg_handler, []).
 
+:- multifile prolog:error_message//1.
+
+prolog:message(bad_signature) -->
+    ['Bad Braid Signature'-[]].
+
+% helper to verify message signature
 signaturechk(Request, Body) :-
     % Check signature
     member(x_braid_signature(Sig), Request),
@@ -39,14 +49,14 @@ signaturechk(Request, Body) :-
     hmac_sha(BotToken, Body, Hmac, [algorithm(sha256)]),
     hash_atom(Hmac, HmacHex),
     HmacHex = Sig.
-signaturechk(_) :-
-    !, throw(http_reply(bad_request('Bad Signature'))).
+signaturechk(_, _) :-
+    !, throw(http_reply(bad_request(bad_signature))).
 
 braid_msg_handler(Request) :-
     member(method(put), Request), !,
     http_read_data(Request, Data, [to(codes)]),
 
-    signaturechk(Request, Data),
+    signaturechk(Request, Data), !,
     % Parse transit
     transit_bytes(Info, Data),
 
@@ -55,6 +65,9 @@ braid_msg_handler(Request) :-
 
     thread_create_in_pool(message_handler, handle_message(Info), _,
                           [detached(true)]).
+braid_msg_handler(Request) :-
+    memberchk(path(Path), Request),
+    throw(http_reply(not_found(Path))).
 
 handle_message(Msg) :-
     reply_to(Msg, "Hi there!", Reply_),
