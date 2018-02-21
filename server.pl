@@ -9,6 +9,7 @@
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(settings)).
 :- use_module(library(sha)).
+:- use_module(library(thread_pool)).
 :- use_module(library(uri)).
 
 :- setting(bot_id, atom, '00000000-0000-4000-0000-000000000000', 'Braid bot ID').
@@ -19,6 +20,10 @@ run(Port) :-
     load_settings('config.pl'),
     http_server(http_dispatch, [port(Port)]).
 
+:- multifile thread_pool:create_pool/1.
+
+thread_pool:create_pool(message_handler) :-
+    thread_pool_create(message_handler, 10, []).
 
 :- multifile http:location/3.
 :- dynamic http:location/3.
@@ -48,8 +53,8 @@ braid_msg_handler(Request) :-
     format('Content-type: text/plain~n~n'),
     format('ok.'),
 
-    handle_message(Info).
-    %% thread_create(handle_message(Info), _, [debug(true)]).
+    thread_create_in_pool(message_handler, handle_message(Info), _,
+                          [detached(true)]).
 
 handle_message(Msg) :-
     reply_to(Msg, "Hi there!", Reply_),
