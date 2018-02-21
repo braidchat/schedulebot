@@ -34,7 +34,7 @@ random_uuid(uuid(Hi, Lo)) :-
 
     crypto_n_random_bytes(8, LoBytes),
     bytes_integer(LoBytes, Lo64),
-    % Set 2 sig bits of clock_seq_hi_res to 0 & 1)
+    % Set 2 sig bits of clock_seq_hi_res to 0 & 1
     Lo_ is Lo64 /\ \ (1 << (64-6)),
     LoUn is Lo_ \/ (1 << (64-7)),
     unsigned64_signed64(LoUn, Lo).
