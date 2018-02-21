@@ -36,7 +36,7 @@ http:location(braid, '/braid', []).
 
 :- http_handler(braid(message), braid_msg_handler, []).
 
-:- multifile prolog:error_message//1.
+:- multifile prolog:message//1.
 
 prolog:message(bad_signature) -->
     ['Bad Braid Signature'-[]].
