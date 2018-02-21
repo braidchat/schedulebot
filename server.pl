@@ -69,12 +69,16 @@ braid_msg_handler(Request) :-
     memberchk(path(Path), Request),
     throw(http_reply(not_found(Path))).
 
+% Handle message
+
 handle_message(Msg) :-
     reply_to(Msg, "Hi there!", Reply_),
     get_assoc(keyword('user-id'), Msg, SenderID),
     put_assoc(keyword('mentioned-user-ids'), Reply_, list([SenderID]), Reply),
     debug(handler, 'Sending ~k', [Reply]),
     send_message(Reply).
+
+% Helpers for creating messages & sending to braid
 
 reply_to(Msg, Content, Reply) :-
     random_uuid(NewId),
