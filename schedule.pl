@@ -1,4 +1,4 @@
-:- module(schedule, [viable_time/2]).
+:- module(schedule, [all_viable_times/2]).
 :- use_module(library(clpfd)).
 :- use_module(library(delay), [delay/1]).
 :- use_module(library(julian), [form_time/2, datetime/3]).
@@ -17,6 +17,19 @@ julian:form_time(not(Y-M-D), Dt) :-
     datetime(NotDt, NotMJD, _),
     fd_dom(NotMJD, NotMJDDom),
     #\ MJD in NotMJDDom.
+julian:form_time(not(hours(Hs)), Dt) :-
+    form_time(H:_:_, Dt),
+    xfy_list(\/, Domain, Hs),
+    #\ H in Domain.
+julian:form_time(not(Ts), Dt) :-
+    is_list(Ts),
+    form_time(Ts, NotDt),
+    datetime(Dt, MJD, Ns),
+    datetime(NotDt, NotMJD, NotNs),
+    fd_dom(NotMJD, NotMJDDom),
+    fd_dom(NotNs, NotNsDom),
+    MJD in NotMJDDom #==> #\ Ns in NotNsDom,
+    Ns in NotNsDom #==> #\ MJD in NotMJDDom.
 
 julian:form_time(hours(Hs), Dt) :-
     form_time(H:_:_, Dt),
@@ -37,21 +50,5 @@ rfc_time(D, S) :-
     form_time(rfc3339(RfcCodes), D),
     string_codes(S, RfcCodes).
 
-print_list([]).
-print_list([A|As]) :-
-    format('~w~n', [A]), print_list(As).
-
-?- all_viable_times([after(2018-02-21), before(2018-02-24),
-                     not(2018-02-22),
-                     %% day_hours(true, [11])
-                     hours([11..13, 15..16]),
-                     %% not(day_hours(2018-02-22, [10, 12])),
-                     not(dow(friday)),
-                     true
-                    ],
-                    Ds),
-   maplist(schedule:rfc_time, Ds, Rfcs),
-   format('~n', []),
-   print_list(Rfcs).
-
-%% ?- A in 0..3, B in 1..4, clpfd:all_distinct([A, B]).
+%:- use_module(library(plunit)).
+%?- load_test_files([]), run_tests.
