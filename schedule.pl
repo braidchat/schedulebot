@@ -11,23 +11,21 @@ julian:form_time(not(dow(Day)), Dt) :-
     datetime(Dt, MJD, _),
     dow_number(Day, DayNumber),
     (MJD+2) mod 7 #\= DayNumber.
-julian:form_time(not(Times), Dt) :-
-    form_time(Times, NotDt),
-    datetime(Dt, MJD, Ns),
-    datetime(NotDt, NotMJD, NotNs),
+julian:form_time(not(Y-M-D), Dt) :-
+    form_time(Y-M-D, NotDt),
+    datetime(Dt, MJD, _),
+    datetime(NotDt, NotMJD, _),
     fd_dom(NotMJD, NotMJDDom),
-    fd_dom(NotNs, NotNSDom),
-    MJD in NotMJDDom #\ Ns in NotNSDom.
+    #\ MJD in NotMJDDom.
 
-julian:form_time(day_hours(D, Hs), Dt) :-
-    form_time([D, H:_:_], Dt),
+julian:form_time(hours(Hs), Dt) :-
+    form_time(H:_:_, Dt),
     xfy_list(\/, Domain, Hs),
-    H in Domains.
+    H in Domain.
 
 viable_time(Constraints, Dt) :-
     form_time(Constraints, Dt),
-    form_time(H:_:_, Dt),
-    H in 9..18,
+    form_time(_:00:00, Dt),
     julian:datetime(Dt, MJD, Nanos),
     labeling([leftmost,up,bisect], [MJD]),
     labeling([leftmost,up,bisect], [Nanos]).
@@ -43,11 +41,12 @@ print_list([]).
 print_list([A|As]) :-
     format('~w~n', [A]), print_list(As).
 
-?- H in 10..13,
-   all_viable_times([after(2018-02-21), before(2018-02-24), H:00:00,
+?- all_viable_times([after(2018-02-21), before(2018-02-24),
+                     not(2018-02-22),
                      %% day_hours(true, [11])
+                     hours([11..13, 15..16]),
                      %% not(day_hours(2018-02-22, [10, 12])),
-                     %% not(dow(friday)),
+                     not(dow(friday)),
                      true
                     ],
                     Ds),
