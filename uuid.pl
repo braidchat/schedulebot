@@ -1,5 +1,5 @@
 :- module(uuid, [random_uuid/1]).
-:- use_module(library(crypto)).
+:- use_module(library(crypto), [crypto_n_random_bytes/2]).
 :- use_module(library(clpfd)).
 
 bytes_integer(Bs, N) :-

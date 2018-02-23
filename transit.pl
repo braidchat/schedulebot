@@ -1,6 +1,6 @@
 :- module(transit, [transit//1, transit_bytes/2]).
-:- use_module(library(msgpack)).
-:- use_module(library(assoc)).
+:- use_module(library(msgpack), [msgpack//1]).
+:- use_module(library(assoc), [is_assoc/1, assoc_to_list/2, list_to_assoc/2]).
 
 % Is there some way to unify these two rules? Seems kind of silly to
 % have them both...

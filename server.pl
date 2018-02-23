@@ -1,16 +1,15 @@
 :- module(server, [run/1]).
-:- use_module(transit).
-:- use_module(uuid).
-:- use_module(library(assoc)).
-:- use_module(library(http/http_client)).
-:- use_module(library(http/http_dispatch)).
-:- use_module(library(http/http_header)).
-:- use_module(library(http/http_log)).
-:- use_module(library(http/thread_httpd)).
-:- use_module(library(settings)).
-:- use_module(library(sha)).
-:- use_module(library(thread_pool)).
-:- use_module(library(uri)).
+:- use_module(transit, [transit_bytes/2]).
+:- use_module(uuid, [random_uuid/1]).
+:- use_module(library(assoc), [list_to_assoc/2, put_assoc/4, get_assoc/3]).
+:- use_module(library(http/http_client), [http_read_data/3, http_post/4]).
+:- use_module(library(http/http_dispatch), [http_dispatch/1, http_handler/3]).
+:- use_module(library(http/http_log), []).
+:- use_module(library(http/thread_httpd), [http_server/2]).
+:- use_module(library(settings), [setting/4, setting/2, load_settings/1]).
+:- use_module(library(sha), [hmac_sha/4]).
+:- use_module(library(thread_pool), [thread_create_in_pool/4,
+                                     thread_pool_create/3]).
 
 % Settings
 :- setting(bot_id, atom, '00000000-0000-4000-0000-000000000000', 'Braid bot ID').
