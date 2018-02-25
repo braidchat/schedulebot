@@ -4,12 +4,34 @@
 :- use_module(library(julian/util), [dow_number/2]).
 :- use_module(library(list_util), [xfy_list/3]).
 
+% helper predicates
+
+is_dow(dow(_)).
+is_dow(_) :- false.
+
+% Extending Julian time forms so we can specify both specific hour
+% spans and times that *don't* work
 :- multifile julian:form_time/2.
+
+% Specify a range of hours that work
+% could be, e.g. hours([11, 15]) or hours([11..13, 14..16])
+julian:form_time(hours(Hs), Dt) :-
+    form_time(H:_:_, Dt),
+    xfy_list(\/, Domain, Hs),
+    H in Domain.
+% Negative time specifiers
 julian:form_time(not(dow(Day)), Dt) :-
-    ground(Day),
+    atom(Day), !,
     datetime(Dt, MJD, _),
     dow_number(Day, DayNumber),
     (MJD+2) mod 7 #\= DayNumber.
+julian:form_time(not(dow(Ds)), Dt) :-
+    is_list(Ds), !,
+    datetime(Dt, MJD, _),
+    maplist(dow_number, Ds, DayNumbers),
+    xfy_list(\/, Domain, DayNumbers),
+    #\ DayNumber in Domain,
+    (MJD + 2) mod 7 #= DayNumber.
 julian:form_time(not(Y-M-D), Dt) :-
     form_time(Y-M-D, NotDt),
     datetime(Dt, MJD, _),
@@ -20,8 +42,22 @@ julian:form_time(not(hours(Hs)), Dt) :-
     form_time(H:_:_, Dt),
     xfy_list(\/, Domain, Hs),
     #\ H in Domain.
-% XXX: to work with general `not` clauses, the date part needs to be
-% concrete -- e.g., 2018-02-23, not dow(thursday)
+julian:form_time(not(Ts), Dt) :-
+    is_list(Ts), memberchk(dow(_), Ts), !,
+    datetime(Dt, MJD, Ns),
+    % get just the dow(_) terms...
+    findall(D, member(dow(D), Ts), Dows_),
+    flatten(Dows_, Dows),
+    maplist(dow_number, Dows, DayNumbers),
+    xfy_list(\/, Domain, DayNumbers),
+    DayNumber in Domain,
+    % and the other terms, which we assume are times (not dates)
+    exclude(is_dow, Ts, OtherTs),
+    form_time(OtherTs, NotDt),
+    datetime(NotDt, _, NotNs), fd_dom(NotNs, NotNsDom),
+
+    (MJD + 2) mod 7 #= DayNumber #==> #\ Ns in NotNsDom,
+    Ns in NotNsDom #==> #\ (MJD + 2) mod 7 #= DayNumber.
 julian:form_time(not(Ts), Dt) :-
     is_list(Ts),
     form_time(Ts, NotDt),
@@ -32,10 +68,7 @@ julian:form_time(not(Ts), Dt) :-
     MJD in NotMJDDom #==> #\ Ns in NotNsDom,
     Ns in NotNsDom #==> #\ MJD in NotMJDDom.
 
-julian:form_time(hours(Hs), Dt) :-
-    form_time(H:_:_, Dt),
-    xfy_list(\/, Domain, Hs),
-    H in Domain.
+% Building the schedule
 
 viable_time(Constraints, Dt) :-
     form_time(Constraints, Dt),

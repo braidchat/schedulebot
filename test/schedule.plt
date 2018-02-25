@@ -49,6 +49,22 @@ test(specify_times_and_exclude) :-
         "2018-02-23T16:00:00"
     ].
 
+test(specify_times_and_exclude_dow) :-
+    schedule:all_viable_times(
+                 [after(2018-02-21), before(2018-02-24),
+                  [dow([thursday,friday]), hours([14..16])],
+                  [dow([thursday,friday,saturday]), hours([15..18])],
+                  not([dow(thursday), hours([16])])
+                 ],
+                 Ds),
+    !,
+    maplist(schedule:rfc_time, Ds, Rfcs),
+    Rfcs = [
+        "2018-02-22T15:00:00",
+        "2018-02-23T15:00:00",
+        "2018-02-23T16:00:00"
+    ].
+
 test(complicated_schedule) :-
     schedule:all_viable_times(
                  [after(2018-02-21), before(2018-02-24),
@@ -102,6 +118,45 @@ test(complicated_schedule2) :-
         "2018-03-04T10:00:00",
         "2018-03-06T09:00:00",
         "2018-03-06T10:00:00"
+    ].
+
+test(exclude_weekday) :-
+    schedule:all_viable_times(
+                 [after(2018-02-21), before(2018-02-24),
+                  hours([14..16]),
+                  not(dow(wednesday))
+                 ],
+                 Ds),
+    !,
+    maplist(schedule:rfc_time, Ds, Rfcs),
+    Rfcs = [
+        "2018-02-22T14:00:00",
+        "2018-02-22T15:00:00",
+        "2018-02-22T16:00:00",
+        "2018-02-23T14:00:00",
+        "2018-02-23T15:00:00",
+        "2018-02-23T16:00:00",
+        "2018-02-24T14:00:00",
+        "2018-02-24T15:00:00",
+        "2018-02-24T16:00:00"
+    ].
+
+test(exclude_multi_weekday) :-
+    schedule:all_viable_times(
+                 [after(2018-02-21), before(2018-02-24),
+                  hours([14..16]),
+                  not(dow([wednesday, saturday]))
+                 ],
+                 Ds),
+    !,
+    maplist(schedule:rfc_time, Ds, Rfcs),
+    Rfcs = [
+        "2018-02-22T14:00:00",
+        "2018-02-22T15:00:00",
+        "2018-02-22T16:00:00",
+        "2018-02-23T14:00:00",
+        "2018-02-23T15:00:00",
+        "2018-02-23T16:00:00"
     ].
 
 :- end_tests(schedule).
