@@ -4,11 +4,6 @@
 :- use_module(library(julian/util), [dow_number/2]).
 :- use_module(library(list_util), [xfy_list/3]).
 
-% helper predicates
-
-is_dow(dow(_)).
-is_dow(_) :- false.
-
 % Extending Julian time forms so we can specify both specific hour
 % spans and times that *don't* work
 :- multifile julian:form_time/2.
@@ -50,14 +45,13 @@ julian:form_time(not(Ts), Dt) :-
     flatten(Dows_, Dows),
     maplist(dow_number, Dows, DayNumbers),
     xfy_list(\/, Domain, DayNumbers),
-    DayNumber in Domain,
     % and the other terms, which we assume are times (not dates)
-    exclude(is_dow, Ts, OtherTs),
+    subtract(Ts, Dows_, OtherTs),
     form_time(OtherTs, NotDt),
     datetime(NotDt, _, NotNs), fd_dom(NotNs, NotNsDom),
 
-    (MJD + 2) mod 7 #= DayNumber #==> #\ Ns in NotNsDom,
-    Ns in NotNsDom #==> #\ (MJD + 2) mod 7 #= DayNumber.
+    DayNumber in Domain #/\ (MJD + 2) mod 7 #= DayNumber #==> #\ Ns in NotNsDom,
+    Ns in NotNsDom #==> #\ DayNumber in Domain #/\ (MJD + 2) mod 7 #= DayNumber.
 julian:form_time(not(Ts), Dt) :-
     is_list(Ts),
     form_time(Ts, NotDt),
