@@ -4,6 +4,51 @@
 
 :- begin_tests(schedule).
 
+test(specify_times) :-
+    schedule:all_viable_times(
+                 [after(2018-02-21), before(2018-02-24),
+                  [dow([thursday,friday]), hours([14..16])]],
+                 Ds),
+    !,
+    maplist(schedule:rfc_time, Ds, Rfcs),
+    Rfcs = [
+        "2018-02-22T14:00:00",
+        "2018-02-22T15:00:00",
+        "2018-02-22T16:00:00",
+        "2018-02-23T14:00:00",
+        "2018-02-23T15:00:00",
+        "2018-02-23T16:00:00"
+    ].
+
+test(specify_times_2) :-
+    schedule:all_viable_times(
+                 [after(2018-02-21), before(2018-02-24),
+                  [dow([thursday,friday]), hours([14..16])],
+                  [dow([friday,saturday]), hours([15..18])]],
+                 Ds),
+    !,
+    maplist(schedule:rfc_time, Ds, Rfcs),
+    Rfcs = [
+        "2018-02-23T15:00:00",
+        "2018-02-23T16:00:00"
+    ].
+
+test(specify_times_and_exclude) :-
+    schedule:all_viable_times(
+                 [after(2018-02-21), before(2018-02-24),
+                  [dow([thursday,friday]), hours([14..16])],
+                  [dow([thursday,friday,saturday]), hours([15..18])],
+                  not([2018-02-22, hours([16])])
+                 ],
+                 Ds),
+    !,
+    maplist(schedule:rfc_time, Ds, Rfcs),
+    Rfcs = [
+        "2018-02-22T15:00:00",
+        "2018-02-23T15:00:00",
+        "2018-02-23T16:00:00"
+    ].
+
 test(complicated_schedule) :-
     schedule:all_viable_times(
                  [after(2018-02-21), before(2018-02-24),
@@ -14,6 +59,7 @@ test(complicated_schedule) :-
                   not([2018-02-24, hours([12..17])])
                  ],
                  Ds),
+    !,
     maplist(schedule:rfc_time, Ds, Rfcs),
     Rfcs = [
         "2018-02-21T11:00:00",
@@ -35,8 +81,8 @@ test(complicated_schedule2) :-
                   not([2018-02-24, hours([10..17])])
                  ],
                  Ds),
-    maplist(schedule:rfc_time, Ds, Rfcs),
     !,
+    maplist(schedule:rfc_time, Ds, Rfcs),
     Rfcs = [
         "2018-02-21T09:00:00",
         "2018-02-21T10:00:00",
