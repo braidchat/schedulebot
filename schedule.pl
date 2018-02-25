@@ -38,6 +38,7 @@ julian:form_time(not(hours(Hs)), Dt) :-
     xfy_list(\/, Domain, Hs),
     #\ H in Domain.
 julian:form_time(not(Ts), Dt) :-
+    % dow(_) in not(_) requires special handling
     is_list(Ts), memberchk(dow(_), Ts), !,
     datetime(Dt, MJD, Ns),
     % get just the dow(_) terms...
