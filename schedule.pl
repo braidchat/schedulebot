@@ -1,6 +1,5 @@
 :- module(schedule, [all_viable_times/2]).
 :- use_module(library(clpfd)).
-:- use_module(library(delay), [delay/1]).
 :- use_module(library(julian), [form_time/2, datetime/3]).
 :- use_module(library(julian/util), [dow_number/2]).
 :- use_module(library(list_util), [xfy_list/3]).
@@ -21,6 +20,8 @@ julian:form_time(not(hours(Hs)), Dt) :-
     form_time(H:_:_, Dt),
     xfy_list(\/, Domain, Hs),
     #\ H in Domain.
+% XXX: to work with general `not` clauses, the date part needs to be
+% concrete -- e.g., 2018-02-23, not dow(thursday)
 julian:form_time(not(Ts), Dt) :-
     is_list(Ts),
     form_time(Ts, NotDt),
