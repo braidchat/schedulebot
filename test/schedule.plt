@@ -75,7 +75,6 @@ test(specify_times_and_exclude_dows) :-
                  Ds),
     !,
     maplist(schedule:rfc_time, Ds, Rfcs),
-    format('schedule ~w~n', [Rfcs]),
     Rfcs = [
         "2018-02-22T15:00:00",
         "2018-02-23T15:00:00"
