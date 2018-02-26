@@ -46,7 +46,6 @@ test(multiple_days_and_hours) :-
 test(multiple_days_group_and_hours) :-
     string_codes("Monday or wednesday at 7am, 10am, or 6pm, Tuesday 9-11", Cs),
     phrase(datetime_ranges(F), Cs),
-    format('Multidays ~w~n', [F]),
     !, F = [[dow([monday,wednesday]), hours([7, 10, 18])],
             [dow([tuesday]), hours([9..11])]].
 
