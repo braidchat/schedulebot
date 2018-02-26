@@ -1,4 +1,6 @@
-:- module(parsing, [english_form//1]).
+:- module(english_dates, [datetime_range//1,
+                          datetime_ranges//1,
+                          availability//1]).
 % very heavily inspired by julian_lang_en; just rolling my own because
 % I want to do some things a little differently, but see
 % https://github.com/mndrix/julian_lang_en/blob/master/prolog/julian/lang/en.pl
@@ -18,8 +20,6 @@ maybe(_) --> "".
 star(S) --> S, star(S).
 star(_) --> "".
 
-end_of_content([], []).
-
 comma --> " and ".
 comma --> " or ".
 comma --> ", ".
@@ -33,7 +33,12 @@ day(dow(Day)) -->
     string(Word),
     { codes_dow(Word, Day) }.
 
-next_hour([]) --> end_of_content.
+% don't allow empty case -- needs to be at least one day
+days(dow([D])) --> day(dow(D)).
+days(dow([D|Ds])) -->
+    day(dow(D)), star(comma), days(dow(Ds)).
+
+next_hour([]) --> "".
 next_hour(Hs) --> star(comma), hours(hours(Hs)).
 
 hour_range(Start, End_, Rng) :-
@@ -62,16 +67,22 @@ hours(hours([H|Hs])) -->
       H = Rng },
     !, next_hour(Hs).
 
-english_form(true) -->
+datetime_range(true) -->
     "any day".
-english_form([dow(Day), hours(Hs)]) -->
-    day(dow(Day)),
+datetime_range([dow(Day), hours(Hs)]) -->
+    days(dow(Day)),
     comma, maybe("at"), maybe(comma),
     hours(hours(Hs)).
-%% english_form([Ds]) -->
-%%     true.
-%% english_form(not(Ds)) -->
-%%     english_form(Ds).
 
+datetime_ranges([]) --> "".
+datetime_ranges([Dr|Drs]) -->
+    datetime_range(Dr),
+    star(comma),
+    datetime_ranges(Drs).
 
-%% ?- run_tests.
+availability(not(Ts)) -->
+    "can't ", maybe("do "), datetime_range(Ts).
+availability(Ts) -->
+    "can ", maybe("do "), datetime_range(Ts).
+
+?- run_tests.
