@@ -85,4 +85,4 @@ availability(not(Ts)) -->
 availability(Ts) -->
     "can ", maybe("do "), datetime_range(Ts).
 
-?- run_tests.
+%% ?- run_tests.
