@@ -49,5 +49,18 @@ test(multiple_days_group_and_hours) :-
     !, F = [[dow([monday,wednesday]), hours([7, 10, 18])],
             [dow([tuesday]), hours([9..11])]].
 
+% testing overall availability
+
+test(can_do_times) :-
+    string_codes("can do Monday or wednesday at 7am, 10am, or 6pm, Tuesday 9-11", Cs),
+    phrase(availability(F), Cs),
+    !, F = [[dow([monday,wednesday]), hours([7, 10, 18])],
+            [dow([tuesday]), hours([9..11])]].
+
+test(cant_do_times) :-
+    string_codes("can't do Monday or wednesday at 7am, 10am, or 6pm, Tuesday 9-11", Cs),
+    phrase(availability(F), Cs),
+    !, F = not([[dow([monday,wednesday]), hours([7, 10, 18])],
+                [dow([tuesday]), hours([9..11])]]).
 
 :- end_tests(english_dates).

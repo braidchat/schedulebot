@@ -81,8 +81,8 @@ datetime_ranges([Dr|Drs]) -->
     datetime_ranges(Drs).
 
 availability(not(Ts)) -->
-    "can't ", maybe("do "), datetime_range(Ts).
+    "can't ", maybe("do "), datetime_ranges(Ts).
 availability(Ts) -->
-    "can ", maybe("do "), datetime_range(Ts).
+    "can ", maybe("do "), datetime_ranges(Ts).
 
 %% ?- run_tests.
