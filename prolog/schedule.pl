@@ -1,4 +1,4 @@
-:- module(schedule, [all_viable_times/2]).
+:- module(schedule, [viable_time/2, all_viable_times/2, rfc_time/2]).
 :- use_module(library(clpfd)).
 :- use_module(library(julian), [form_time/2, datetime/3]).
 :- use_module(library(julian/util), [dow_number/2]).
@@ -79,5 +79,5 @@ rfc_time(D, S) :-
     form_time(rfc3339(RfcCodes), D),
     string_codes(S, RfcCodes).
 
-%:- use_module(library(plunit)).
-%?- load_test_files([]), run_tests.
+:- use_module(library(plunit)).
+?- load_test_files([]), run_tests.
