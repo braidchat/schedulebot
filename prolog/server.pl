@@ -1,8 +1,8 @@
 :- module(server, [run/1]).
+:- use_module(messages, [handle_message/1]).
+:- use_module(persist, [attach_threads_db/1]).
 :- use_module(transit, [transit_bytes/2]).
-:- use_module(uuid, [random_uuid/1]).
-:- use_module(library(assoc), [list_to_assoc/2, put_assoc/4, get_assoc/3]).
-:- use_module(library(http/http_client), [http_read_data/3, http_post/4]).
+:- use_module(library(http/http_client), [http_read_data/3]).
 :- use_module(library(http/http_dispatch), [http_dispatch/1, http_handler/3]).
 :- use_module(library(http/http_log), []).
 :- use_module(library(http/thread_httpd), [http_server/2]).
@@ -14,11 +14,13 @@
 % Settings
 :- setting(bot_id, atom, '00000000-0000-4000-0000-000000000000', 'Braid bot ID').
 :- setting(bot_token, atom, 'sthasthsnthsnthsnthsth', 'Braid bot token').
+:- setting(bot_name, string, "/schedule", 'Name of the bot on the Braid server including leading /').
 :- setting(braid_api_url, atom, 'http://localhost:5557', 'Braid API URL').
 
 % Main
 run(Port) :-
-    load_settings('config.pl'),
+    load_settings('../config.pl'),
+    attach_threads_db('../schedule_data'),
     http_server(http_dispatch, [port(Port)]).
 
 % Thread pool for message handler lazy creation
@@ -52,7 +54,7 @@ signaturechk(_, _) :-
     !, throw(http_reply(bad_request(bad_signature))).
 
 braid_msg_handler(Request) :-
-    member(method(put), Request), !,
+    member(method(Meth), Request), member(Meth, [put, post]), !,
     http_read_data(Request, Data, [to(codes)]),
 
     signaturechk(Request, Data), !,
@@ -67,43 +69,3 @@ braid_msg_handler(Request) :-
 braid_msg_handler(Request) :-
     memberchk(path(Path), Request),
     throw(http_reply(not_found(Path))).
-
-% Handle message
-
-handle_message(Msg) :-
-    reply_to(Msg, "Hi there!", Reply_),
-    get_assoc(keyword('user-id'), Msg, SenderID),
-    put_assoc(keyword('mentioned-user-ids'), Reply_, list([SenderID]), Reply),
-    debug(handler, 'Sending ~k', [Reply]),
-    send_message(Reply).
-
-% Helpers for creating messages & sending to braid
-
-reply_to(Msg, Content, Reply) :-
-    random_uuid(NewId),
-    put_assoc(keyword(id), Msg, NewId, Reply_),
-    put_assoc(keyword('mentioned-tag-ids'), Reply_, list([]), Reply__),
-    put_assoc(keyword('mentioned-user-ids'), Reply__, list([]), Reply___),
-    text_to_string(Content, ContentStr),
-    put_assoc(keyword(content), Reply___, ContentStr, Reply).
-
-new_message(Msg) :-
-    random_uuid(MsgId),
-    Pairs = [keyword(id)-MsgId,
-             keyword(content)-"",
-             keyword('thread-id')-"",
-             keyword('mentioned-user-ids')-list([]),
-             keyword('mentioned-tag-ids')-list([])],
-    list_to_assoc(Pairs, Msg).
-
-send_message(Msg) :-
-    setting(braid_api_url, BraidURL),
-    setting(bot_id, BotId),
-    setting(bot_token, BotToken),
-    transit_bytes(Msg, Bytes),
-    atom_concat(BraidURL, '/bots/message', URL),
-    http_post(URL,
-              bytes('application/transit+msgpack', Bytes),
-              _,
-              [authorization(basic(BotId, BotToken)),
-               status_code(201)]).
