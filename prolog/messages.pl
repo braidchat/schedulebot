@@ -67,7 +67,6 @@ handle_message(Msg) :-
     get_assoc(keyword('content'), Msg, Content),
     setting(server:bot_name, BotName),
     string_concat(BotName, Command, Content),
-    debug(handler, 'Sending command to start a new schedule ~w', [Command]),
     get_assoc(keyword('mentioned-user-ids'), Msg, Mentioned),
     get_assoc(keyword('user-id'), Msg, Sender),
     Users = [Sender|Mentioned],
@@ -96,21 +95,15 @@ handle_message(Msg) :-
 
 reply_schedule(ThreadId) :-
     thread_availability(ThreadId, AvailableTimes),
-    debug(handler, 'available times ~w', [AvailableTimes]),
     new_message(Msg__),
     put_assoc(keyword('thread-id'), Msg__, ThreadId, Msg_),
     put_assoc(keyword('content'), Msg_, AvailableTimes, Msg),
-    debug(handler, 'created new message to send ~w', [Msg]),
     send_message(Msg).
 
 thread_availability(ThreadId, AvailableTimes) :-
-    debug(handler, 'checking availability', []),
     thread_constraints(ThreadId, Constraints),
-    debug(handler, 'constraints ~w', [Constraints]),
     all_viable_times(Constraints, DateTimes),
-    debug(handler, 'times ~w', [DateTimes]),
     maplist(rfc_time, DateTimes, Rfcs),
-    debug(handler, 'rfcs ~w', [Rfcs]),
     strings_join(Rfcs, "\n", AvailableTimes).
 
 
@@ -131,9 +124,7 @@ start_schedule_thread(NewThreadId, Users, InitialConstraints) :-
     put_assoc(keyword('mentioned-user-ids'), Msg__, list(Users), Msg_),
     % TODO: make this formatted in a reasonable way
     format(string(S), '~w', [InitialConstraints]),
-    debug(handler, 'Starting schedule thread ~w', [S]),
     put_assoc(keyword('content'), Msg_, S, Msg),
-    assoc:assoc_to_list(Msg, L), debug(handler, 'sending msg ~w', [L]),
     send_message(Msg),
     subscribe_thread(NewThreadId).
 
