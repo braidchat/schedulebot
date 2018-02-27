@@ -188,4 +188,27 @@ test(another_one) :-
         "2018-02-28T10:00:00"
     ].
 
+test(again) :-
+    Constraints = [[after(2018-2-27),before(2018-3-5)],
+                   [[dow([monday]),hours([9..11])],
+                    [dow([tuesday]),hours([10..13])],
+                    [dow([friday]),hours([9..10])]]],
+    schedule:all_viable_times(Constraints, Ds),
+    !,
+    maplist(schedule:rfc_time, Ds, Rfcs),
+    Rfcs = [
+        "2018-02-27T10:00:00",
+        "2018-02-27T11:00:00",
+        "2018-02-27T12:00:00",
+        "2018-02-27T13:00:00",
+
+        "2018-03-02T09:00:00",
+        "2018-03-02T10:00:00",
+
+        "2018-03-05T09:00:00",
+        "2018-03-05T10:00:00",
+        "2018-03-05T11:00:00"
+    ].
+
+
 :- end_tests(schedule).
