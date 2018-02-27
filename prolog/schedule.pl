@@ -14,6 +14,28 @@ julian:form_time(hours(Hs), Dt) :-
     form_time(H:_:_, Dt),
     xfy_list(\/, Domain, Hs),
     H in Domain.
+% specify a time on a day
+julian:form_time(day_at(Date, Time), Dt) :-
+    datetime(Dt, MJD, Ns),
+    form_time(Date, DayDt),
+    form_time(Time, TimeDt),
+    datetime(DayDt, DayMJD, _),
+    datetime(TimeDt, _, TimeNs),
+    fd_dom(DayMJD, MJDDom),
+    fd_dom(TimeNs, NSDom),
+    MJD in MJDDom #==> Ns in NSDom.
+julian:form_time(Forms, Dt) :-
+    % Non-empty list of just day_at forms
+    is_list(Forms), =(Forms, [_|_]),
+    forall(member(F, Forms), =(F, day_at(_, _))), !,
+    debug(schedule, 'forms ~w', [Forms]),
+    % Assert all the days_at..
+    foreach(member(day_at(Da, T), Forms),
+            form_time(day_at(Da, T), Dt)),
+    % But then also assert that the day must be one of those days
+    findall(Da, member(day_at(Da, _), Forms), Days),
+    debug(schedule, 'day limit ~w', [Days]),
+    form_time(Days, Dt).
 % Negative time specifiers
 julian:form_time(not(dow(Day)), Dt) :-
     atom(Day), !,
@@ -77,7 +99,6 @@ all_viable_times(Constraints, Ds) :-
 
 rfc_time(D, S) :-
     form_time(rfc3339(RfcCodes), D),
-    string_codes(S, RfcCodes).
+    string_codes(S, RfcCodes), !.
 
-:- use_module(library(plunit)).
-?- load_test_files([]), run_tests.
+%?- run_tests.

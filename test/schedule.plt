@@ -188,14 +188,28 @@ test(another_one) :-
         "2018-02-28T10:00:00"
     ].
 
-test(again) :-
-    Constraints = [[after(2018-2-27),before(2018-3-5)],
-                   [[dow([monday]),hours([9..11])],
-                    [dow([tuesday]),hours([10..13])],
-                    [dow([friday]),hours([9..10])]]],
+test(limit_days_simple) :-
+    Constraints = [after(2018-2-27),before(2018-3-5),
+                   day_at(dow(monday), hours([9..11])),
+                   dow(monday)],
     schedule:all_viable_times(Constraints, Ds),
     !,
     maplist(schedule:rfc_time, Ds, Rfcs),
+    Rfcs = [
+        "2018-03-05T09:00:00",
+        "2018-03-05T10:00:00",
+        "2018-03-05T11:00:00"
+    ].
+
+test(limit_days) :-
+    Constraints = [[after(2018-2-27),before(2018-3-5)],
+                   [day_at(dow([monday]), hours([9..11])),
+                    day_at(dow([tuesday]), hours([10..13])),
+                    day_at(dow([friday]), hours([9..10]))]],
+    schedule:all_viable_times(Constraints, Ds),
+    !,
+    maplist(schedule:rfc_time, Ds, Rfcs),
+    debug(schedule, 'Times ~w', [Rfcs]),
     Rfcs = [
         "2018-02-27T10:00:00",
         "2018-02-27T11:00:00",
