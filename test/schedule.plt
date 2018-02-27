@@ -174,4 +174,18 @@ test(exclude_multi_weekday) :-
         "2018-02-23T16:00:00"
     ].
 
+test(another_one) :-
+    schedule:all_viable_times(
+                 [[after(2018-2-26),before(2018-3-3)],
+                  [[dow([tuesday,wednesday]),hours([10,14])]],
+                  not([dow([wednesday]),hours([14])])],
+                 Ds),
+    !,
+    maplist(schedule:rfc_time, Ds, Rfcs),
+    Rfcs = [
+        "2018-02-27T10:00:00",
+        "2018-02-27T14:00:00",
+        "2018-02-28T10:00:00"
+    ].
+
 :- end_tests(schedule).
