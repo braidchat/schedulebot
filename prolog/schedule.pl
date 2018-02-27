@@ -4,6 +4,9 @@
 :- use_module(library(julian/util), [dow_number/2]).
 :- use_module(library(list_util), [xfy_list/3]).
 
+ensure_list(X, X) :- is_list(X).
+ensure_list(X, [X]).
+
 % Extending Julian time forms so we can specify both specific hour
 % spans and times that *don't* work
 :- multifile julian:form_time/2.
@@ -15,7 +18,19 @@ julian:form_time(hours(Hs), Dt) :-
     xfy_list(\/, Domain, Hs),
     H in Domain.
 % specify a time on a day
+julian:form_time(day_at(dow(Days_), Time), Dt) :-
+    datetime(Dt, MJD, Ns),
+    ensure_list(Days_, Days),
+    maplist(dow_number, Days, DayNumbers),
+    xfy_list(\/, DayDomain, DayNumbers),
+    DayNumber in DayDomain,
+
+    form_time(Time, TimeDt),
+    datetime(TimeDt, _, TimeNs),
+    fd_dom(TimeNs, NSDom),
+    (MJD + 2) mod 7 #= DayNumber #==> Ns in NSDom, !.
 julian:form_time(day_at(Date, Time), Dt) :-
+    debug(schedule, 'day_at(~w, ~w)', [Date, Time]),
     datetime(Dt, MJD, Ns),
     form_time(Date, DayDt),
     form_time(Time, TimeDt),
@@ -23,6 +38,7 @@ julian:form_time(day_at(Date, Time), Dt) :-
     datetime(TimeDt, _, TimeNs),
     fd_dom(DayMJD, MJDDom),
     fd_dom(TimeNs, NSDom),
+    debug(schedule, 'time range ~w', [NSDom]),
     MJD in MJDDom #==> Ns in NSDom.
 julian:form_time(Forms, Dt) :-
     % Non-empty list of just day_at forms

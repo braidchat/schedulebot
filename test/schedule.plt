@@ -195,7 +195,32 @@ test(limit_days_simple) :-
     schedule:all_viable_times(Constraints, Ds),
     !,
     maplist(schedule:rfc_time, Ds, Rfcs),
+    debug(schedule, 'Times ~w', [Rfcs]),
     Rfcs = [
+        "2018-03-05T09:00:00",
+        "2018-03-05T10:00:00",
+        "2018-03-05T11:00:00"
+    ].
+
+test(limit_days_manual) :-
+    Constraints = [after(2018-2-27),before(2018-3-5),
+                   day_at(dow([monday]), hours([9..11])),
+                   day_at(dow([tuesday]), hours([10..13])),
+                   day_at(dow([friday]), hours([9..10])),
+                   dow([monday,tuesday,friday])],
+    schedule:all_viable_times(Constraints, Ds),
+    !,
+    maplist(schedule:rfc_time, Ds, Rfcs),
+    debug(schedule, 'Times ~w', [Rfcs]),
+    Rfcs = [
+        "2018-02-27T10:00:00",
+        "2018-02-27T11:00:00",
+        "2018-02-27T12:00:00",
+        "2018-02-27T13:00:00",
+
+        "2018-03-02T09:00:00",
+        "2018-03-02T10:00:00",
+
         "2018-03-05T09:00:00",
         "2018-03-05T10:00:00",
         "2018-03-05T11:00:00"
