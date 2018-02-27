@@ -1,4 +1,4 @@
-:- module(uuid, [random_uuid/1]).
+:- module(uuid, [random_uuid/1, uuid_atom/2]).
 :- use_module(library(crypto), [crypto_n_random_bytes/2]).
 :- use_module(library(clpfd)).
 
@@ -38,3 +38,22 @@ random_uuid(uuid(Hi, Lo)) :-
     Lo_ is Lo64 /\ \ (1 << (64-6)),
     LoUn is Lo_ \/ (1 << (64-7)),
     unsigned64_signed64(LoUn, Lo).
+
+uuid_atom(uuid(Hi_, Lo_), A) :-
+    integer(Hi_), integer(Lo_), !,
+    unsigned64_signed64(Hi, Hi_),
+    unsigned64_signed64(Lo, Lo_),
+    TimeLow is (Hi >> 32),
+    TimeMid is (Hi >> 16) /\ 0xffff,
+    TimeHi is Hi /\ 0xffff,
+    ClockSeqHi is (Lo >> 56) /\ 0xff,
+    ClockSeqLo is (Lo >> 48) /\ 0xff,
+    Node is Lo /\ 0xffff_ffff_ffff,
+    format(atom(TL), '~`0t~16r~8|', [TimeLow]),
+    format(atom(TM), '~`0t~16r~4|', [TimeMid]),
+    format(atom(TH), '~`0t~16r~4|', [TimeHi]),
+    format(atom(CH), '~`0t~16r~2|', [ClockSeqHi]),
+    format(atom(CL), '~`0t~16r~2|', [ClockSeqLo]),
+    format(atom(N), '~`0t~16r~12|', [Node]),
+    string_concat(CH, CL, Cs),
+    atomic_list_concat([TL, TM, TH, Cs, N], '-', A).
