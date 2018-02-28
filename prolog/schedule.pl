@@ -44,11 +44,12 @@ julian:form_time(day_at(dow(Days_), Time), Dt) :-
     datetime(Dt, MJD, Ns),
     ensure_list(Days_, Days),
     maplist(dow_number, Days, DayNumbers),
+    datetime(TimeDt, _, TimeNs),
+    form_time(Time, TimeDt),
     xfy_list(\/, DayDomain, DayNumbers),
     DayNumber in DayDomain,
-    form_time(Time, TimeDt),
-    datetime(TimeDt, _, TimeNs),
     fd_dom(TimeNs, NSDom),
+    % XXX: this doesn't actually work if multiple dows are supplied; ends up not restricting the hours properly
     (MJD + 2) mod 7 #= DayNumber #==> Ns in NSDom.
 julian:form_time(day_at(Date, Time), Dt) :-
     datetime(Dt, MJD, Ns),

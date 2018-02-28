@@ -55,8 +55,8 @@ test(can_do_times) :-
     string_codes("can do Monday or wednesday at 7am, 10am, or 6pm, Tuesday 9-11",
                  Cs),
     phrase(availability(F), Cs),
-    !, F = [[dow([monday,wednesday]), hours([7, 10, 18])],
-            [dow([tuesday]), hours([9..11])]].
+    !, F = one_of([day_at(dow([monday,wednesday]), hours([7, 10, 18])),
+                   day_at(dow([tuesday]), hours([9..11]))]).
 
 test(cant_do_times) :-
     string_codes(
