@@ -17,6 +17,28 @@ julian:form_time(hours(Hs), Dt) :-
     form_time(H:_:_, Dt),
     xfy_list(\/, Domain, Hs),
     H in Domain.
+% Any of the given apply
+julian:form_time(any(DayForms), Dt) :-
+    is_list(DayForms), =(DayForms, [_|_]),
+    forall(member(F, DayForms), =(F, dow(_))), !,
+    findall(D, member(dow(D), DayForms), Days_),
+    flatten(Days_, Days),
+    maplist(dow_number, Days, DayNumbers),
+    xfy_list(\/, DayDomain, DayNumbers),
+    DayNumber in DayDomain,
+    datetime(Dt, MJD, _),
+    (MJD + 2) mod 7 #= DayNumber.
+julian:form_time(any(Forms), Dt) :-
+    maplist(form_time, Forms, Dts),
+    maplist(datetime, Dts, MJDs, Nses),
+    maplist(fd_dom, MJDs, MjdDoms),
+    maplist(fd_dom, Nses, NsDoms),
+    xfy_list(\/, MjdDom, MjdDoms),
+    xfy_list(\/, NsDom, NsDoms),
+    datetime(Dt, MJD, Ns),
+    MJD in MjdDom, Ns in NsDom.
+
+
 % specify a time on a day
 julian:form_time(day_at(dow(Days_), Time), Dt) :-
     datetime(Dt, MJD, Ns),
@@ -24,13 +46,11 @@ julian:form_time(day_at(dow(Days_), Time), Dt) :-
     maplist(dow_number, Days, DayNumbers),
     xfy_list(\/, DayDomain, DayNumbers),
     DayNumber in DayDomain,
-
     form_time(Time, TimeDt),
     datetime(TimeDt, _, TimeNs),
     fd_dom(TimeNs, NSDom),
-    (MJD + 2) mod 7 #= DayNumber #==> Ns in NSDom, !.
+    (MJD + 2) mod 7 #= DayNumber #==> Ns in NSDom.
 julian:form_time(day_at(Date, Time), Dt) :-
-    debug(schedule, 'day_at(~w, ~w)', [Date, Time]),
     datetime(Dt, MJD, Ns),
     form_time(Date, DayDt),
     form_time(Time, TimeDt),
@@ -38,20 +58,15 @@ julian:form_time(day_at(Date, Time), Dt) :-
     datetime(TimeDt, _, TimeNs),
     fd_dom(DayMJD, MJDDom),
     fd_dom(TimeNs, NSDom),
-    debug(schedule, 'time range ~w', [NSDom]),
     MJD in MJDDom #==> Ns in NSDom.
-julian:form_time(Forms, Dt) :-
+julian:form_time(one_of(Forms), Dt) :-
     % Non-empty list of just day_at forms
     is_list(Forms), =(Forms, [_|_]),
     forall(member(F, Forms), =(F, day_at(_, _))), !,
-    debug(schedule, 'forms ~w', [Forms]),
-    % Assert all the days_at..
-    foreach(member(day_at(Da, T), Forms),
-            form_time(day_at(Da, T), Dt)),
-    % But then also assert that the day must be one of those days
+    % also assert that the day must be one of those days
     findall(Da, member(day_at(Da, _), Forms), Days),
-    debug(schedule, 'day limit ~w', [Days]),
-    form_time(Days, Dt).
+    FormsPlus = [any(Days)|Forms],
+    form_time(FormsPlus, Dt).
 % Negative time specifiers
 julian:form_time(not(dow(Day)), Dt) :-
     atom(Day), !,
@@ -111,7 +126,8 @@ viable_time(Constraints, Dt) :-
     labeling([leftmost,up,bisect], [Nanos]).
 
 all_viable_times(Constraints, Ds) :-
-    findall(D, viable_time(Constraints, D), Ds).
+    findall(D, viable_time(Constraints, D), Ds_),
+    sort(Ds_, Ds).
 
 rfc_time(D, S) :-
     form_time(rfc3339(RfcCodes), D),
