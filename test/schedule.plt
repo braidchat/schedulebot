@@ -276,7 +276,6 @@ test(one_of_day_at_multi_down) :-
     schedule:all_viable_times(Cons, Ds),
     !,
     maplist(schedule:rfc_time, Ds, Rfcs),
-    debug(schedule, 'Times = ~w', [Rfcs]),
     Rfcs = [
         "2018-03-05T07:00:00",
         "2018-03-05T08:00:00",

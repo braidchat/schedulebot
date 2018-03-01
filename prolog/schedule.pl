@@ -19,6 +19,7 @@ julian:form_time(hours(Hs), Dt) :-
     H in Domain.
 % Any of the given apply
 julian:form_time(any(DayForms), Dt) :-
+    % special-case to handle any([dow()...]) forms
     is_list(DayForms), =(DayForms, [_|_]),
     forall(member(F, DayForms), =(F, dow(_))), !,
     findall(D, member(dow(D), DayForms), Days_),
@@ -47,10 +48,9 @@ julian:form_time(day_at(dow(Days_), Time), Dt) :-
     datetime(TimeDt, _, TimeNs),
     form_time(Time, TimeDt),
     xfy_list(\/, DayDomain, DayNumbers),
-    DayNumber in DayDomain,
     fd_dom(TimeNs, NSDom),
-    % XXX: this doesn't actually work if multiple dows are supplied; ends up not restricting the hours properly
-    (MJD + 2) mod 7 #= DayNumber #==> Ns in NSDom.
+    (MJD + 2) mod 7 #= DayNum,
+    DayNum in DayDomain #==> Ns in NSDom.
 julian:form_time(day_at(Date, Time), Dt) :-
     datetime(Dt, MJD, Ns),
     form_time(Date, DayDt),
