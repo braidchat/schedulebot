@@ -315,4 +315,36 @@ test(one_of_day_at_multi_not) :-
         "2018-03-07T10:00:00"
     ].
 
+test(one_of_day_at_multi_not_and_any_date) :-
+    Cons = [after(2018-03-04), before(2018-03-09),
+            hours([7..12]),
+            one_of([day_at(dow([monday,wednesday]), hours([7..10])),
+                    day_at(dow([tuesday]), hours([9..11])),
+                    day_at(dow([friday]), true)]),
+            not(day_at(dow([tuesday]), hours([10])))],
+    schedule:all_viable_times(Cons, Ds),
+    !,
+    maplist(schedule:rfc_time, Ds, Rfcs),
+    Rfcs = [
+        "2018-03-05T07:00:00",
+        "2018-03-05T08:00:00",
+        "2018-03-05T09:00:00",
+        "2018-03-05T10:00:00",
+
+        "2018-03-06T09:00:00",
+        "2018-03-06T11:00:00",
+
+        "2018-03-07T07:00:00",
+        "2018-03-07T08:00:00",
+        "2018-03-07T09:00:00",
+        "2018-03-07T10:00:00",
+
+        "2018-03-09T07:00:00",
+        "2018-03-09T08:00:00",
+        "2018-03-09T09:00:00",
+        "2018-03-09T10:00:00",
+        "2018-03-09T11:00:00",
+        "2018-03-09T12:00:00"
+    ].
+
 :- end_tests(schedule).

@@ -52,7 +52,7 @@ test(multiple_days_group_and_hours) :-
 test(any_time_day) :-
     string_codes("any time friday", Cs),
     phrase(datetime_range(F), Cs),
-    !, F = dow([friday]).
+    !, F = day_at(dow([friday]), true).
 
 % testing overall availability
 
@@ -69,7 +69,7 @@ test(can_do_with_any) :-
     phrase(availability(F), Cs),
     !, F = one_of([day_at(dow([monday,wednesday]), hours([7, 10, 18])),
                    day_at(dow([tuesday]), hours([9..11])),
-                   dow([friday])]).
+                   day_at(dow([friday]), true)]).
 
 test(cant_do_times) :-
     string_codes(
