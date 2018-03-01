@@ -49,6 +49,11 @@ test(multiple_days_group_and_hours) :-
     !, F = one_of([day_at(dow([monday,wednesday]), hours([7, 10, 18])),
                    day_at(dow([tuesday]), hours([9..11]))]).
 
+test(any_time_day) :-
+    string_codes("any time friday", Cs),
+    phrase(datetime_range(F), Cs),
+    !, F = dow([friday]).
+
 % testing overall availability
 
 test(can_do_times) :-
@@ -57,6 +62,14 @@ test(can_do_times) :-
     phrase(availability(F), Cs),
     !, F = one_of([day_at(dow([monday,wednesday]), hours([7, 10, 18])),
                    day_at(dow([tuesday]), hours([9..11]))]).
+
+test(can_do_with_any) :-
+    string_codes("can do Monday or wednesday at 7am, 10am, or 6pm, Tuesday 9-11 or any time friday",
+                 Cs),
+    phrase(availability(F), Cs),
+    !, F = one_of([day_at(dow([monday,wednesday]), hours([7, 10, 18])),
+                   day_at(dow([tuesday]), hours([9..11])),
+                   dow([friday])]).
 
 test(cant_do_times) :-
     string_codes(

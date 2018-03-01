@@ -74,6 +74,9 @@ datetime_range(day_at(dow(Day), hours(Hs))) -->
     days(dow(Day)),
     comma, maybe("at"), maybe(comma),
     hours(hours(Hs)).
+datetime_range(dow(Days)) -->
+    maybe("any time "),
+    days(dow(Days)), maybe(" any time"), maybe(" whenever").
 
 datetime_ranges(one_of([])) --> "".
 datetime_ranges(one_of([Dr|Drs])) -->
