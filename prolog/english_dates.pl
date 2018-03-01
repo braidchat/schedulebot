@@ -70,19 +70,19 @@ hours(hours([H|Hs])) -->
 
 datetime_range(true) -->
     "any day".
-datetime_range([dow(Day), hours(Hs)]) -->
+datetime_range(day_at(dow(Day), hours(Hs))) -->
     days(dow(Day)),
     comma, maybe("at"), maybe(comma),
     hours(hours(Hs)).
 
-datetime_ranges([]) --> "".
-datetime_ranges([Dr|Drs]) -->
+datetime_ranges(one_of([])) --> "".
+datetime_ranges(one_of([Dr|Drs])) -->
     datetime_range(Dr),
     star(comma),
-    datetime_ranges(Drs).
+    datetime_ranges(one_of(Drs)).
 
 availability(NotTs) -->
-    "can't ", maybe("do "), datetime_ranges(Ts),
+    "can't ", maybe("do "), datetime_ranges(one_of(Ts)),
     { maplist([T, Nt]>> =(Nt, not(T)), Ts, NotTs) }.
 availability(Ts) -->
     "can ", maybe("do "), datetime_ranges(Ts).
