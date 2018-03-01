@@ -91,6 +91,16 @@ julian:form_time(not(hours(Hs)), Dt) :-
     form_time(H:_:_, Dt),
     xfy_list(\/, Domain, Hs),
     #\ H in Domain.
+julian:form_time(not(day_at(dow(Days_), Time)), Dt) :-
+    datetime(Dt, MJD, Ns),
+    ensure_list(Days_, Days),
+    maplist(dow_number, Days, DayNumbers),
+    datetime(TimeDt, _, TimeNs),
+    form_time(Time, TimeDt),
+    xfy_list(\/, DayDomain, DayNumbers),
+    fd_dom(TimeNs, NSDom),
+    (MJD + 2) mod 7 #= DayNum,
+    DayNum in DayDomain #==> #\ Ns in NSDom.
 julian:form_time(not(Ts), Dt) :-
     % dow(_) in not(_) requires special handling
     is_list(Ts), memberchk(dow(_), Ts), !,
