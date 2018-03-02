@@ -1,4 +1,4 @@
-:- module(schedule, [viable_time/2, all_viable_times/2, rfc_time/2]).
+:- module(schedule, [viable_time/2, all_viable_times/2, datetimes_format/2]).
 :- use_module(library(clpfd)).
 :- use_module(library(julian), [form_time/2, datetime/3]).
 :- use_module(library(julian/util), [dow_number/2]).
@@ -144,4 +144,38 @@ rfc_time(D, S) :-
     form_time(rfc3339(RfcCodes), D),
     string_codes(S, RfcCodes), !.
 
-%?- run_tests.
+%%  format_range(+Ds, -Fds) is det.
+% When Ds is a sorted list of datetimes, Fds is a list of nicely-formatted
+% range strings
+datetimes_format(Ds, Fds) :-
+    % Cut to just get the most-collapsed ranges
+    phrase(collapsed(Colled), Ds), !,
+    maplist(format_range, Colled, Fds).
+
+% TODO: if Ns1 = Ns2, just say time
+format_range(range(MJD, Ns1, Ns2), S) :-
+    datetime(StartDt, MJD, Ns1),
+    datetime(EndDt, MJD, Ns2),
+    form_time(unix(EpochStart), StartDt),
+    form_time(unix(EpochEnd), EndDt),
+    stamp_date_time(EpochStart, DateTimeStart, 'UTC'),
+    stamp_date_time(EpochEnd, DateTimeEnd, 'UTC'),
+    format_time(string(Start), '%a %b %d, %H:00', DateTimeStart),
+    format_time(string(End), '-%H:00', DateTimeEnd),
+    string_concat(Start, End, S).
+
+adjacent_dt(MJD-Ns1, Ns2) -->
+    [datetime(MJD, Ns2)],
+    { Ns2 #= Ns1 + 60 * 60 * 1_000_000_000 }.
+
+adjacent_seq(MJD-Ns1, NsFinal) -->
+    adjacent_dt(MJD-Ns1, Ns2),
+    adjacent_seq(MJD-Ns2, NsFinal).
+adjacent_seq(_-Ns1, Ns1) --> [].
+
+collapsed([]) --> [].
+collapsed([datetime(MJD, Ns)]) --> [range(MJD, Ns, Ns)].
+collapsed([range(MJD, Ns1, Ns2)|Rs]) -->
+    [datetime(MJD, Ns1)],
+    adjacent_seq(MJD-Ns1, Ns2),
+    collapsed(Rs).

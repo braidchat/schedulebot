@@ -6,7 +6,7 @@
                         watched_thread/1]).
 :- use_module(transit, [transit_bytes/2]).
 :- use_module(uuid, [random_uuid/1, uuid_atom/2]).
-:- use_module(schedule, [all_viable_times/2, rfc_time/2]).
+:- use_module(schedule, [all_viable_times/2, datetimes_format/2]).
 :- use_module(library(assoc), [list_to_assoc/2, put_assoc/4, get_assoc/3]).
 :- use_module(library(dcg/basics), [integer//1]).
 :- use_module(library(http/http_client), [http_post/4, http_put/4]).
@@ -103,8 +103,8 @@ reply_schedule(ThreadId) :-
 thread_availability(ThreadId, AvailableTimes) :-
     thread_constraints(ThreadId, Constraints),
     all_viable_times(Constraints, DateTimes),
-    maplist(rfc_time, DateTimes, Rfcs),
-    strings_join(Rfcs, "\n", AvailableTimes).
+    datetimes_format(DateTimes, FormattedTimes),
+    strings_join(FormattedTimes, "\n", AvailableTimes).
 
 
 plus(S) --> S.
@@ -127,5 +127,3 @@ start_schedule_thread(NewThreadId, Users, InitialConstraints) :-
     put_assoc(keyword('content'), Msg_, S, Msg),
     send_message(Msg),
     subscribe_thread(NewThreadId).
-
-%2018-02-26 to 2018-03-03 @5a8f6cbe-d8c7-41a2-bd0e-b753f595f9c3 @5a8f6cbe-7b09-4be5-854a-1c55b4656136
