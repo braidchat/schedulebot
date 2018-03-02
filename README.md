@@ -9,4 +9,4 @@ You can do that by running `pack_install(msgpack), pack_install(julian), pack_in
 
 Demo of usage:
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/n9MBrBrhLwQ" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+[![Scheduler Demo](https://img.youtube.com/vi/n9MBrBrhLwQ/0.jpg)](http://www.youtube.com/watch?v=n9MBrBrhLwQ)
