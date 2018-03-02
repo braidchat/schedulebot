@@ -35,6 +35,11 @@ test(hour_range_am) :-
     phrase(datetime_range(F), Cs),
     !, F = day_at(dow([wednesday]), hours([9..15])).
 
+test(time_range) :-
+    string_codes("monday, wednesday, or friday 10:00-18:00", Cs),
+    phrase(datetime_range(F), Cs),
+    !, F = day_at(dow([monday, wednesday, friday]), hours([10..18])).
+
 % multiple dates & times
 
 test(multiple_days_and_hours) :-

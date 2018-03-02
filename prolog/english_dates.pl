@@ -48,25 +48,25 @@ hour_range(Start, End_, Rng) :-
     Rng = Start..End.
 hour_range(Start, End, Start..End).
 
+hour(H) -->
+    integer(H), maybe(" "), "am".
+hour(H) -->
+    integer(N), maybe(" "), "pm",
+    { H is N + 12 }.
+hour(H) -->
+    integer(H), ":00".
+hour(H) -->
+    integer(H).
+
 hours(hours([H|Hs])) -->
-    integer(H),
-    maybe(" "), "am",
-    !, next_hour(Hs).
-hours(hours([H|Hs])) -->
-    integer(N),
-    maybe(" "), "pm",
-    { H is N + 12 },
-    !, next_hour(Hs).
-hours(hours([H|Hs])) -->
-    integer(H), ":00",
-    !, next_hour(Hs).
-hours(hours([H|Hs])) -->
-    integer(A),
+    hour(A),
     star(" "), range, star(" "),
-    integer(B),
+    hour(B),
     { hour_range(A, B, Rng),
       H = Rng },
     !, next_hour(Hs).
+hours(hours([H|Hs])) -->
+    hour(H), next_hour(Hs).
 
 datetime_range(true) -->
     "any day".
