@@ -68,8 +68,8 @@ hours(hours([H|Hs])) -->
 hours(hours([H|Hs])) -->
     hour(H), next_hour(Hs).
 
-datetime_range(true) -->
-    "any day".
+datetime_range(day_at(true, hours(Hs))) -->
+    "any day", maybe(comma), hours(hours(Hs)).
 datetime_range(day_at(dow(Day), hours(Hs))) -->
     days(dow(Day)),
     comma, maybe("at"), maybe(comma),

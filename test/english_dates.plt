@@ -40,6 +40,16 @@ test(time_range) :-
     phrase(datetime_range(F), Cs),
     !, F = day_at(dow([monday, wednesday, friday]), hours([10..18])).
 
+test(any_time_day) :-
+    string_codes("any time friday", Cs),
+    phrase(datetime_range(F), Cs),
+    !, F = day_at(dow([friday]), true).
+
+test(time_any_day) :-
+    string_codes("any day 9am to 3pm", Cs),
+    phrase(datetime_range(F), Cs),
+    !, F = day_at(true, hours([9..15])).
+
 % multiple dates & times
 
 test(multiple_days_and_hours) :-
@@ -53,11 +63,6 @@ test(multiple_days_group_and_hours) :-
     phrase(datetime_ranges(F), Cs),
     !, F = one_of([day_at(dow([monday,wednesday]), hours([7, 10, 18])),
                    day_at(dow([tuesday]), hours([9..11]))]).
-
-test(any_time_day) :-
-    string_codes("any time friday", Cs),
-    phrase(datetime_range(F), Cs),
-    !, F = day_at(dow([friday]), true).
 
 % testing overall availability
 
