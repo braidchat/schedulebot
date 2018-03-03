@@ -89,5 +89,3 @@ availability(NotTs) -->
     { maplist([T, Nt]>> =(Nt, not(T)), Ts, NotTs) }.
 availability(Ts) -->
     "can ", maybe("do "), datetime_ranges(Ts).
-
-%?- run_tests.
