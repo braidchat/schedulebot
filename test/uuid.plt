@@ -20,4 +20,8 @@ test(parse_uuid) :-
     ground(UUID),
     UUID = uuid(-7251103930088535261, -7001467367653491591).
 
+test(parse_uuid_2) :-
+    Atom = '7bc324d7-0b50-49bb-989f-64d6d65a2483',
+    uuid_atom(UUID, Atom), !,
+    ground(UUID), UUID = uuid(8918012193150093755, -7449124384765500285).
 :- end_tests(uuid).
