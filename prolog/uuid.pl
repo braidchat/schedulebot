@@ -1,14 +1,12 @@
 :- module(uuid, [random_uuid/1, uuid_atom/2]).
-:- use_module(library(crypto), [crypto_n_random_bytes/2]).
+:- use_module(library(crypto), [crypto_n_random_bytes/2, hex_bytes/2]).
 :- use_module(library(clpfd)).
+:- use_module(library(list_util), [split/3]).
 
+%% bytes_integer(+Bs, -N) is det
+% given a list of bytes in big-endian form, convert them to an integer
 bytes_integer(Bs, N) :-
-    foldl(pow, Bs, 0-0, N-_).
-
-pow(B, N0-I0, N-I) :-
-    B in 0..255,
-    N #= N0 + B*256^I0,
-    I #= I0 + 1.
+    foldl([B, N0, N1]>>(N1 #= N0<<8 + B), Bs, 0, N).
 
 unsigned64_signed64(Un, Si) :-
     integer(Un),
@@ -46,14 +44,23 @@ uuid_atom(uuid(Hi_, Lo_), A) :-
     TimeLow is (Hi >> 32),
     TimeMid is (Hi >> 16) /\ 0xffff,
     TimeHi is Hi /\ 0xffff,
-    ClockSeqHi is (Lo >> 56) /\ 0xff,
-    ClockSeqLo is (Lo >> 48) /\ 0xff,
+    ClockSeq is (Lo >> 48) /\ 0xffff,
     Node is Lo /\ 0xffff_ffff_ffff,
     format(atom(TL), '~`0t~16r~8|', [TimeLow]),
     format(atom(TM), '~`0t~16r~4|', [TimeMid]),
     format(atom(TH), '~`0t~16r~4|', [TimeHi]),
-    format(atom(CH), '~`0t~16r~2|', [ClockSeqHi]),
-    format(atom(CL), '~`0t~16r~2|', [ClockSeqLo]),
+    format(atom(CS), '~`0t~16r~4|', [ClockSeq]),
     format(atom(N), '~`0t~16r~12|', [Node]),
-    string_concat(CH, CL, Cs),
-    atomic_list_concat([TL, TM, TH, Cs, N], '-', A).
+    atomic_list_concat([TL, TM, TH, CS, N], '-', A).
+uuid_atom(uuid(Hi, Lo), A) :-
+    atom(A), !,
+    atom_chars(A, Chars),
+    split(Chars, '-', CharParts),
+    maplist(atom_chars, AtomParts, CharParts),
+    maplist(hex_bytes, AtomParts, Bytes),
+    maplist(bytes_integer, Bytes, Nums),
+    [TimeLow, TimeMid, TimeHi, ClockSeq, Node] = Nums,
+    Hi_ #= TimeLow << 32 + TimeMid << 16 + TimeHi,
+    Lo_ #= ClockSeq << 48 + Node,
+    unsigned64_signed64(Hi_, Hi),
+    unsigned64_signed64(Lo_, Lo).
