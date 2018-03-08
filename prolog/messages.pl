@@ -75,8 +75,8 @@ handle_message(Msg) :-
     get_assoc(keyword('mentioned-user-ids'), Msg, Mentioned),
     get_assoc(keyword('user-id'), Msg, Sender),
     Users = [Sender|Mentioned],
-    debug(handler, 'for  users ~w', [Users]),
     string_codes(Command, Codes),
+    % Not using `phrase` for dcg, because I'm okay with trailing text
     schedule_command(InitialConstraints, Codes, _),
     debug(handler, 'Starting with constraints ~w', [InitialConstraints]),
     random_uuid(NewThreadId),
@@ -92,11 +92,26 @@ handle_message(Msg) :-
     add_thread_constraints(ThreadId, Constraints),
     reply_schedule(ThreadId).
 handle_message(Msg) :-
-    debug(handler, 'unknown, reply current schedule', []),
     get_assoc(keyword('thread-id'), Msg, ThreadId),
+    watched_thread(ThreadId),
+    get_assoc(keyword('content'), Msg, Content),
+    Content = "times?",
     reply_schedule(ThreadId).
-    %% reply_to(Msg, "Sorry, I don't understand", Reply),
-    %% send_message(Reply).
+handle_message(Msg) :-
+    get_assoc(keyword('thread-id'), Msg, ThreadId),
+    watched_thread(ThreadId), !,
+    % don't spam the scheduling thread
+    true.
+handle_message(Msg) :-
+    setting(server:bot_name, BotName),
+    Txts = [
+        "Sorry, I don't understand. ",
+        "Try something like ",
+        "'", BotName, " 2018-03-10 to 2018-03-17 @person1 @person2"
+    ],
+    strings_join(Txts, "", Txt),
+    reply_to(Msg, Txt, Reply),
+    send_message(Reply).
 
 reply_schedule(ThreadId) :-
     thread_availability(ThreadId, AvailableTimes),
@@ -127,8 +142,14 @@ start_schedule_thread(NewThreadId, Users, InitialConstraints) :-
     new_message(Msg___),
     put_assoc(keyword('thread-id'), Msg___, NewThreadId, Msg__),
     put_assoc(keyword('mentioned-user-ids'), Msg__, list(Users), Msg_),
-    % TODO: make this formatted in a reasonable way
-    format(string(S), '~w', [InitialConstraints]),
+    [after(Start), before(End)] = InitialConstraints,
+    format(string(S1), 'What times work for eveyone between ~w and ~w?~n',
+           [Start, End]),
+    format(string(S2),
+           'Reply in this thread with "can do <times>" or "can\'t do <times>"',
+           []),
+    format(string(S3), 'and send "times?" to see the current availability', []),
+    strings_join([S1, S2, S3], "\n", S),
     put_assoc(keyword('content'), Msg_, S, Msg),
     send_message(Msg),
     subscribe_thread(NewThreadId).
