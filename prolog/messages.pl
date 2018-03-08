@@ -15,12 +15,15 @@
 % Helpers for creating messages & sending to braid
 
 reply_to(Msg, Content, Reply) :-
-    random_uuid(NewId),
-    put_assoc(keyword(id), Msg, NewId, Reply_),
-    put_assoc(keyword('mentioned-tag-ids'), Reply_, list([]), Reply__),
-    put_assoc(keyword('mentioned-user-ids'), Reply__, list([]), Reply___),
+    random_uuid(MsgId),
+    get_assoc(keyword('thread-id'), Msg, ThreadId),
     text_to_string(Content, ContentStr),
-    put_assoc(keyword(content), Reply___, ContentStr, Reply).
+    Pairs = [keyword(id)-MsgId,
+             keyword(content)-ContentStr,
+             keyword('thread-id')-ThreadId,
+             keyword('mentioned-tag-ids')-list([]),
+             keyword('mentioned-user-ids')-list([])],
+    list_to_assoc(Pairs, Reply).
 
 new_message(Msg) :-
     random_uuid(MsgId),
