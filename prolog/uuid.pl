@@ -1,12 +1,11 @@
 :- module(uuid, [random_uuid/1, uuid_atom/2]).
 :- use_module(library(crypto), [crypto_n_random_bytes/2, hex_bytes/2]).
-:- use_module(library(clpfd)).
 :- use_module(library(list_util), [split/3]).
 
 %% bytes_integer(+Bs, -N) is det
 % given a list of bytes in big-endian form, convert them to an integer
 bytes_integer(Bs, N) :-
-    foldl([B, N0, N1]>>(N1 #= N0<<8 + B), Bs, 0, N).
+    foldl([B, N0, N1]>>(N1 is N0<<8 + B), Bs, 0, N).
 
 unsigned64_signed64(Un, Si) :-
     integer(Un),
@@ -60,7 +59,7 @@ uuid_atom(uuid(Hi, Lo), A) :-
     maplist(hex_bytes, AtomParts, Bytes),
     maplist(bytes_integer, Bytes, Nums),
     [TimeLow, TimeMid, TimeHi, ClockSeq, Node] = Nums,
-    Hi_ #= TimeLow << 32 + TimeMid << 16 + TimeHi,
-    Lo_ #= ClockSeq << 48 + Node,
+    Hi_ is TimeLow << 32 + TimeMid << 16 + TimeHi,
+    Lo_ is ClockSeq << 48 + Node,
     unsigned64_signed64(Hi_, Hi),
     unsigned64_signed64(Lo_, Lo).
