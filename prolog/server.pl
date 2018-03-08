@@ -16,8 +16,13 @@
 :- setting(bot_token, atom, 'sthasthsnthsnthsnthsth', 'Braid bot token').
 :- setting(bot_name, string, "/schedule", 'Name of the bot on the Braid server including leading /').
 :- setting(braid_api_url, atom, 'http://localhost:5557', 'Braid API URL').
+:- setting(bot_port, integer, 8080, 'Default port to run on').
 
 % Main
+main :-
+    load_settings('../config.pl'),
+    setting(bot_port, Port),
+    run(Port).
 run(Port) :-
     load_settings('../config.pl'),
     attach_threads_db('../schedule_data'),

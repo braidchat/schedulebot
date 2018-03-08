@@ -10,3 +10,10 @@ You can do that by running `pack_install(msgpack), pack_install(julian), pack_in
 Demo of usage:
 
 [![Scheduler Demo](https://img.youtube.com/vi/n9MBrBrhLwQ/0.jpg)](http://www.youtube.com/watch?v=n9MBrBrhLwQ)
+
+
+Compiling to deploy:
+
+In the `prolog/` directory, run:
+
+`swipl --stand_alone=true -o scheduler -g server:main -c server.pl -O`
