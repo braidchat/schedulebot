@@ -38,6 +38,7 @@ send_message(Msg) :-
     setting(server:braid_api_url, BraidURL),
     setting(server:bot_id, BotId),
     setting(server:bot_token, BotToken),
+
     transit_bytes(Msg, Bytes),
     atom_concat(BraidURL, '/bots/message', URL),
     http_post(URL,
@@ -50,6 +51,7 @@ subscribe_thread(ThreadId) :-
     setting(server:braid_api_url, BraidURL),
     setting(server:bot_id, BotId),
     setting(server:bot_token, BotToken),
+
     uuid_atom(ThreadId, ThreadIdAtom),
     atom_concat('/bots/subscribe/', ThreadIdAtom, Path),
     atom_concat(BraidURL, Path, URL),
