@@ -14,7 +14,7 @@ Demo of usage:
 
 ## Deploying
 
-Load the `server` module and run `qsave_program(scheduler, [autoload(true), stand_alone(true), goal(server:main)]).`
+Load the `server` module and run `qsave_program(scheduler, [autoload(true), stand_alone(true), foreign(save), goal(server:main)]).`
 
 This will create an executable named "scheduler" that will run the server main goal.
 Note that this will also stand a prolog repl when launched.
