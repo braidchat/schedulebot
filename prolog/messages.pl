@@ -5,7 +5,7 @@
                         add_thread_constraints/2,
                         watched_thread/1]).
 :- use_module(transit, [transit_bytes/2]).
-:- use_module(uuid, [random_uuid/1, uuid_atom/2]).
+:- use_module(library(uuid), [random_uuid/1, uuid_atom/2]).
 :- use_module(schedule, [all_viable_times/2, datetimes_format/2]).
 :- use_module(library(assoc), [list_to_assoc/2, put_assoc/4, get_assoc/3]).
 :- use_module(library(dcg/basics), [integer//1]).
