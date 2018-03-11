@@ -20,7 +20,7 @@ This will create an executable named "scheduler" that will run the server main g
 Note that this will also stand a prolog repl when launched.
 This may not be what you want, but it is pretty useful! (there's probably a way to remove this, but I haven't tried)
 
-Running the binary, it will expect the `config.pl` file to be in the directory above it.
+Running the binary, it will expect the `config.pl` file to be in the directory above it (although you can change the location of the config file by setting the `CONFIG_FILE` environment variable).
 Your config.pl should look like this:
 
 ```prolog

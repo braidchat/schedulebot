@@ -17,15 +17,22 @@
 :- setting(bot_name, string, "/schedule", 'Name of the bot on the Braid server including leading /').
 :- setting(braid_api_url, atom, 'http://localhost:5557', 'Braid API URL').
 :- setting(bot_port, integer, 8080, 'Default port to run on').
+:- setting(bot_db_file, atom, '../schedule_data', 'Path to database file').
+
+config_file(F) :- getenv('CONFIG_FILE', F), !.
+config_file('../config.pl').
 
 % Main
 main :-
-    load_settings('../config.pl'),
+    config_file(Conf),
+    load_settings(Conf),
     setting(bot_port, Port),
     run(Port).
 run(Port) :-
-    load_settings('../config.pl'),
-    attach_threads_db('../schedule_data'),
+    config_file(Conf),
+    load_settings(Conf),
+    setting(bot_db_file, DbFile),
+    attach_threads_db(DbFile),
     http_server(http_dispatch, [port(Port)]).
 
 % Thread pool for message handler lazy creation
