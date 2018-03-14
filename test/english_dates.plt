@@ -50,6 +50,16 @@ test(time_any_day) :-
     phrase(datetime_range(F), Cs),
     !, F = day_at(true, hours([9..15])).
 
+test(time_month) :-
+    string_codes("Wednesday, March 14th at 10:00", Cs),
+    phrase(datetime_range(F), Cs),
+    !, F = day_at(gregorian(_, 3, 14), hours([10])).
+
+test(time_month_short) :-
+    string_codes("mon, Jul 16th at 10:00", Cs),
+    phrase(datetime_range(F), Cs),
+    !, F = day_at(gregorian(_, 7, 16), hours([10])).
+
 % multiple dates & times
 
 test(multiple_days_and_hours) :-

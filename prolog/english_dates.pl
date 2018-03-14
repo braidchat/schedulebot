@@ -6,13 +6,44 @@
 % https://github.com/mndrix/julian_lang_en/blob/master/prolog/julian/lang/en.pl
 :- use_module(library(clpfd)).
 :- use_module(library(dcg/basics), [integer//1, string//1]).
+:- use_module(library(julian/calendar/gregorian), [gregorian/3, month_number/2]).
 :- use_module(library(julian/util), [dow_number/2]).
 
-% True if Day is an atom representing the day of week named in Codes
+dow_shortform(mon, monday).
+dow_shortform(tue, tuesday).
+dow_shortform(wed, wednesday).
+dow_shortform(thu, thursday).
+dow_shortform(thur, thursday).
+dow_shortform(fri, friday).
+dow_shortform(sat, saturday).
+dow_shortform(sun, sunday).
+dow_shortform(X, X).
+
 codes_dow(Codes, Day) :-
     atom_codes(Atom, Codes),
-    downcase_atom(Atom, Day),
+    downcase_atom(Atom, Day_),
+    dow_shortform(Day_, Day),
     dow_number(Day, _).
+
+month_shortform(jan, january).
+month_shortform(feb, february).
+month_shortform(mar, march).
+month_shortform(apr, april).
+month_shortform(jun, june).
+month_shortform(jul, july).
+month_shortform(aug, august).
+month_shortform(sep, september).
+month_shortform(sept, september).
+month_shortform(oct, october).
+month_shortform(nov, november).
+month_shortform(dec, december).
+month_shortform(X, X).
+
+codes_month(Codes, M) :-
+    atom_codes(Atom, Codes),
+    downcase_atom(Atom, Month_),
+    month_shortform(Month_, Month),
+    month_number(Month, M).
 
 maybe(S) --> S.
 maybe(_) --> "".
@@ -34,10 +65,20 @@ day(dow(Day)) -->
     string(Word),
     { codes_dow(Word, Day) }.
 
+month(month(M)) -->
+    string(Word),
+    { codes_month(Word, M) }.
+
 % don't allow empty case -- needs to be at least one day
 days(dow([D])) --> day(dow(D)).
 days(dow([D|Ds])) -->
     day(dow(D)), star(comma), days(dow(Ds)).
+
+date(dow(D)) --> days(dow(D)).
+date(gregorian(_,M, D)) -->
+    maybe(days(dow(_))), comma, month(month(M)),
+    comma, maybe("the"), maybe(comma),
+    integer(D), maybe("th"), maybe("st").
 
 next_hour([]) --> "".
 next_hour(Hs) --> star(comma), hours(hours(Hs)).
@@ -70,8 +111,8 @@ hours(hours([H|Hs])) -->
 
 datetime_range(day_at(true, hours(Hs))) -->
     "any day", maybe(comma), hours(hours(Hs)).
-datetime_range(day_at(dow(Day), hours(Hs))) -->
-    days(dow(Day)),
+datetime_range(day_at(Date, hours(Hs))) -->
+    date(Date),
     comma, maybe("at"), maybe(comma),
     hours(hours(Hs)).
 datetime_range(day_at(dow(Days), true)) -->
