@@ -103,4 +103,14 @@ test(cant_do_times) :-
     !, F = [not(day_at(dow([monday,wednesday]), hours([7, 10, 18]))),
             not(day_at(dow([tuesday]), hours([9..11])))].
 
+test(time_month_without_dow_times) :-
+    string_codes("can do Jul 16th at 10:00", Cs),
+    phrase(availability(F), Cs),
+    !, F = one_of([day_at(gregorian(_, 7, 16), hours([10]))]).
+
+test(can_is_optional) :-
+    string_codes("Jul 16th at 10:00", Cs),
+    phrase(availability(F), Cs),
+    !, F = one_of([day_at(gregorian(_, 7, 16), hours([10]))]).
+
 :- end_tests(english_dates).
