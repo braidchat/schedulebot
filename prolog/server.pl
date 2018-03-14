@@ -38,8 +38,8 @@ run(Port) :-
 % Thread pool for message handler lazy creation
 :- multifile thread_pool:create_pool/1.
 
-thread_pool:create_pool(message_handler) :-
-    thread_pool_create(message_handler, 10, []).
+thread_pool:create_pool(message_handler_pool) :-
+    thread_pool_create(message_handler_pool, 10, []).
 
 % HTTP Routes
 :- multifile http:location/3.
@@ -76,7 +76,7 @@ braid_msg_handler(Request) :-
     format('Content-type: text/plain~n~n'),
     format('ok.'),
 
-    thread_create_in_pool(message_handler, handle_message(Info), _,
+    thread_create_in_pool(message_handler_pool, handle_message(Info), _,
                           [detached(true)]).
 braid_msg_handler(Request) :-
     memberchk(path(Path), Request),
