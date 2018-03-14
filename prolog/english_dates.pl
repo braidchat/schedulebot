@@ -76,7 +76,8 @@ days(dow([D|Ds])) -->
 
 date(dow(D)) --> days(dow(D)).
 date(gregorian(_,M, D)) -->
-    maybe(days(dow(_))), comma, month(month(M)),
+    maybe(days(dow(_))), maybe(comma),
+    month(month(M)),
     comma, maybe("the"), maybe(comma),
     integer(D), maybe("th"), maybe("st").
 
