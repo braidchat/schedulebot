@@ -113,4 +113,9 @@ test(can_is_optional) :-
     phrase(availability(F), Cs),
     !, F = one_of([day_at(gregorian(_, 7, 16), hours([10]))]).
 
+test(real_world_attempt1) :-
+    string_codes("Mon Mar 12, 10 am", Cs),
+    phrase(availability(F), Cs),
+    !, F = one_of([day_at(gregorian(_, 03, 12), hours([10]))]).
+
 :- end_tests(english_dates).
