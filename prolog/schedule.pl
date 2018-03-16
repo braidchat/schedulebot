@@ -17,6 +17,7 @@ julian:form_time(hours(Hs), Dt) :-
     form_time(H:_:_, Dt),
     xfy_list(\/, Domain, Hs),
     H in Domain.
+
 % Any of the given apply
 julian:form_time(any(DayForms), Dt) :-
     % special-case to handle any([dow()...]) forms
@@ -39,7 +40,6 @@ julian:form_time(any(Forms), Dt) :-
     datetime(Dt, MJD, Ns),
     MJD in MjdDom, Ns in NsDom.
 
-
 % specify a time on a day
 julian:form_time(day_at(dow(Days_), Time), Dt) :-
     datetime(Dt, MJD, Ns),
@@ -57,9 +57,8 @@ julian:form_time(day_at(Date, Time), Dt) :-
     form_time(Time, TimeDt),
     datetime(DayDt, DayMJD, _),
     datetime(TimeDt, _, TimeNs),
-    fd_dom(DayMJD, MJDDom),
-    fd_dom(TimeNs, NSDom),
-    MJD in MJDDom #==> Ns in NSDom.
+    (MJD #<==> DayMJD) #==> (TimeNs #<==> Ns).
+
 julian:form_time(one_of(Forms), Dt) :-
     % Non-empty list of just day_at forms
     is_list(Forms), =(Forms, [_|_]),
@@ -68,6 +67,7 @@ julian:form_time(one_of(Forms), Dt) :-
     findall(Da, member(day_at(Da, _), Forms), Days),
     FormsPlus = [any(Days)|Forms],
     form_time(FormsPlus, Dt).
+
 % Negative time specifiers
 julian:form_time(not(dow(Day)), Dt) :-
     atom(Day), !,
