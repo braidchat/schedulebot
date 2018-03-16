@@ -43,58 +43,25 @@ julian:form_time(one_of(Forms), Dt) :-
     form_time(FormsPlus, Dt).
 
 % Negative time specifiers
-julian:form_time(not(dow(DorDs)), Dt) :-
-    ensure_list(DorDs, Ds),
-    datetime(Dt, MJD, _),
-    maplist(dow_number, Ds, DayNumbers),
-    xfy_list(\/, Domain, DayNumbers),
-    #\ DayNumber in Domain,
-    (MJD + 2) mod 7 #= DayNumber.
-julian:form_time(not(Y-M-D), Dt) :-
-    form_time(Y-M-D, NotDt),
-    datetime(Dt, MJD, _),
-    datetime(NotDt, NotMJD, _),
-    fd_dom(NotMJD, NotMJDDom),
-    #\ MJD in NotMJDDom.
-julian:form_time(not(hours(Hs)), Dt) :-
-    form_time(H:_:_, Dt),
-    xfy_list(\/, Domain, Hs),
-    #\ H in Domain.
-julian:form_time(not(day_at(dow(Days_), Time)), Dt) :-
-    datetime(Dt, MJD, Ns),
-    ensure_list(Days_, Days),
-    maplist(dow_number, Days, DayNumbers),
-    datetime(TimeDt, _, TimeNs),
-    form_time(Time, TimeDt),
-    xfy_list(\/, DayDomain, DayNumbers),
-    fd_dom(TimeNs, NSDom),
-    (MJD + 2) mod 7 #= DayNum,
-    DayNum in DayDomain #==> #\ Ns in NSDom.
 julian:form_time(not(Ts), Dt) :-
-    % dow(_) in not(_) requires special handling
-    is_list(Ts), memberchk(dow(_), Ts), !,
     datetime(Dt, MJD, Ns),
-    % get just the dow(_) terms...
-    findall(D, member(dow(D), Ts), Dows_),
-    flatten(Dows_, Dows),
-    maplist(dow_number, Dows, DayNumbers),
-    xfy_list(\/, Domain, DayNumbers),
-    % and the other terms, which we assume are times (not dates)
-    subtract(Ts, Dows_, OtherTs),
-    form_time(OtherTs, NotDt),
-    datetime(NotDt, _, NotNs), fd_dom(NotNs, NotNsDom),
-
-    DayNumber in Domain #/\ (MJD + 2) mod 7 #= DayNumber #==> #\ Ns in NotNsDom,
-    Ns in NotNsDom #==> #\ DayNumber in Domain #/\ (MJD + 2) mod 7 #= DayNumber.
-julian:form_time(not(Ts), Dt) :-
-    is_list(Ts),
     form_time(Ts, NotDt),
-    datetime(Dt, MJD, Ns),
     datetime(NotDt, NotMJD, NotNs),
-    fd_dom(NotMJD, NotMJDDom),
-    fd_dom(NotNs, NotNsDom),
-    MJD in NotMJDDom #==> #\ Ns in NotNsDom,
-    Ns in NotNsDom #==> #\ MJD in NotMJDDom.
+    copy_term(NotMJD, MJD, MJDGs),
+    copy_term(NotNs, Ns, NsGs),
+    andTerms(MJDGs, DayG-_DayOther),
+    andTerms(NsGs, TimeG-_TimeOther),
+    G1 = clpfd:( (DayG) #==> #\ (TimeG) ),
+    G2 = clpfd:( (TimeG) #==> #\ (DayG) ),
+    call(G1),
+    call(G2),
+    !.
+
+andTerm(clpfd:(T), V0-O, V-O) :-
+    clpfd:(V) = clpfd:(T #/\ V0).
+andTerm(T, V0-O, V0-[T|O]).
+
+andTerms(Ts, G-Other) :- foldl(andTerm, Ts, (A #\= A)-[], G-Other).
 
 % Building the schedule
 
