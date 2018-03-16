@@ -19,45 +19,19 @@ julian:form_time(hours(Hs), Dt) :-
     H in Domain.
 
 % Any of the given apply
-julian:form_time(any(DayForms), Dt) :-
-    % special-case to handle any([dow()...]) forms
-    is_list(DayForms), =(DayForms, [_|_]),
-    forall(member(F, DayForms), =(F, dow(_))), !,
-    findall(D, member(dow(D), DayForms), Days_),
-    flatten(Days_, Days),
-    maplist(dow_number, Days, DayNumbers),
-    xfy_list(\/, DayDomain, DayNumbers),
-    DayNumber in DayDomain,
-    datetime(Dt, MJD, _),
-    (MJD + 2) mod 7 #= DayNumber.
-julian:form_time(any(Forms), Dt) :-
-    maplist(form_time, Forms, Dts),
-    maplist(datetime, Dts, MJDs, Nses),
-    maplist(fd_dom, MJDs, MjdDoms),
-    maplist(fd_dom, Nses, NsDoms),
-    xfy_list(\/, MjdDom, MjdDoms),
-    xfy_list(\/, NsDom, NsDoms),
-    datetime(Dt, MJD, Ns),
-    MJD in MjdDom, Ns in NsDom.
+julian:form_time(any([]), _Dt) :- false.
+julian:form_time(any([F|Fs]), Dt) :-
+    form_time(F, Dt) ; form_time(any(Fs), Dt).
 
 % specify a time on a day
-julian:form_time(day_at(dow(Days_), Time), Dt) :-
-    datetime(Dt, MJD, Ns),
-    ensure_list(Days_, Days),
-    maplist(dow_number, Days, DayNumbers),
-    datetime(TimeDt, _, TimeNs),
-    form_time(Time, TimeDt),
-    xfy_list(\/, DayDomain, DayNumbers),
-    fd_dom(TimeNs, NSDom),
-    (MJD + 2) mod 7 #= DayNum,
-    DayNum in DayDomain #==> Ns in NSDom.
 julian:form_time(day_at(Date, Time), Dt) :-
     datetime(Dt, MJD, Ns),
     form_time(Date, DayDt),
     form_time(Time, TimeDt),
-    datetime(DayDt, DayMJD, _),
-    datetime(TimeDt, _, TimeNs),
-    (MJD #<==> DayMJD) #==> (TimeNs #<==> Ns).
+    datetime(DayDt, MJD, _),
+    datetime(TimeDt, _, Ns).
+julian:form_time(day_at(Date, _Time), Dt) :-
+    form_time(not(Date), Dt).
 
 julian:form_time(one_of(Forms), Dt) :-
     % Non-empty list of just day_at forms
