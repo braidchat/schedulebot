@@ -43,13 +43,8 @@ julian:form_time(one_of(Forms), Dt) :-
     form_time(FormsPlus, Dt).
 
 % Negative time specifiers
-julian:form_time(not(dow(Day)), Dt) :-
-    atom(Day), !,
-    datetime(Dt, MJD, _),
-    dow_number(Day, DayNumber),
-    (MJD+2) mod 7 #\= DayNumber.
-julian:form_time(not(dow(Ds)), Dt) :-
-    is_list(Ds), !,
+julian:form_time(not(dow(DorDs)), Dt) :-
+    ensure_list(DorDs, Ds),
     datetime(Dt, MJD, _),
     maplist(dow_number, Ds, DayNumbers),
     xfy_list(\/, Domain, DayNumbers),
