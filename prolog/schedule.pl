@@ -14,7 +14,7 @@ ensure_list(X, [X]).
 % Specify a range of hours that work
 % could be, e.g. hours([11, 15]) or hours([11..13, 14..16])
 julian:form_time(hours(Hs), Dt) :-
-    form_time(H:_:_, Dt),
+    form_time(H:0:0, Dt),
     xfy_list(\/, Domain, Hs),
     H in Domain.
 
