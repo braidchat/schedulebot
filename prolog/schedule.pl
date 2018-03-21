@@ -44,24 +44,46 @@ julian:form_time(one_of(Forms), Dt) :-
 
 % Negative time specifiers
 julian:form_time(not(Ts), Dt) :-
+    debug(schedule, 'not ~w', [Ts]),
     datetime(Dt, MJD, Ns),
+    debug(schedule, 'MJD = ~w Ns = ~w', [MJD, Ns]),
     form_time(Ts, NotDt),
     datetime(NotDt, NotMJD, NotNs),
-    copy_term(NotMJD, MJD, MJDGs),
-    copy_term(NotNs, Ns, NsGs),
-    andTerms(MJDGs, DayG-_DayOther),
-    andTerms(NsGs, TimeG-_TimeOther),
-    G1 = clpfd:( (DayG) #==> #\ (TimeG) ),
-    G2 = clpfd:( (TimeG) #==> #\ (DayG) ),
-    call(G1),
-    call(G2),
-    !.
+    debug(schedule, 'not mjd ~w not ns ~w', [NotMJD, NotNs]),
+    ( ground(NotMJD)
+    -> MJDGs = [clpfd:( MJD #= NotMJD )]
+    ;  copy_term(NotMJD, MJD, MJDGs) ),
+    ( ground(NotNs)
+    -> NsGs = [clpfd:( Ns #= NotNs )]
+    ;  copy_term(NotNs, Ns, NsGs) ),
+    debug(schedule, 'MJDGs ~w~nNsGs ~w', [MJDGs, NsGs]),
+    andTerms(MJDGs, DayG),
+    andTerms(NsGs, TimeG),
+    maplist(negateTerm(MJD), MJDGs, NotMJDGs), andTerms(NotMJDGs, NotDayG),
+    maplist(negateTerm(Ns), NsGs, NotNsGs), andTerms(NotNsGs, NotTimeG),
+    G1 = clpfd:(    (DayG) #==> (NotTimeG) ),
+    G2 = clpfd:( (NotDayG) #<== (TimeG) ),
+    % problem is supplemental variables in clauses mean that they can
+    % be false, but MJD or Ns can still be equal to one of the
+    % specified values...need a way to say "there is *never* true"
+    % instead of just "there is a value that makes this untrue"
+    debug(schedule, 'g1 ~w~ng2 ~w', [G1, G2]),
+    G1, G2, !.
 
-andTerm(clpfd:(T), V0-O, V-O) :-
+andTerm(clpfd:(T), empty, T).
+andTerm(clpfd:(T), V0, V) :-
     clpfd:(V) = clpfd:(T #/\ V0).
-andTerm(T, V0-O, V0-[T|O]).
+andTerm(_T, V0, V0).
 
-andTerms(Ts, G-Other) :- foldl(andTerm, Ts, (A #\= A)-[], G-Other).
+andTerms(Ts, G) :- foldl(andTerm, Ts, empty, G).
+
+% Idea: try to rewrite the expression to negate just the one important part of the term...
+% presumably the one featuring the primary variable, but leave the one
+% with the ancillary variables unchanged?
+negateTerm(V, clpfd:(#=(A, B)), T) :-
+    term_variables([A, B], Vars), memberchk(V, Vars), !,
+    T = clpfd:( #\=(A, B)).
+negateTerm(_, T, T).
 
 % Building the schedule
 
