@@ -121,7 +121,11 @@ datetimes_format(Ds, Fds) :-
     phrase(collapsed(Colled), Ds), !,
     maplist(format_range, Colled, Fds).
 
-% TODO: if Ns1 = Ns2, just say time
+format_range(range(MJD, Ns1, Ns1), S) :-
+    datetime(Dt, MJD, Ns1),
+    form_time(unix(Epoch), Dt),
+    stamp_date_time(Epoch, DateTime, 'UTC'),
+    format_time(string(S), '%a %b %d, %H:00', DateTime).
 format_range(range(MJD, Ns1, Ns2), S) :-
     datetime(StartDt, MJD, Ns1),
     datetime(EndDt, MJD, Ns2),
