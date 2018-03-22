@@ -35,7 +35,7 @@ julian:form_time(day_at(Date, _Time), Dt) :-
 
 julian:form_time(one_of(Forms), Dt) :-
     % Non-empty list of just day_at forms
-    is_list(Forms), =(Forms, [_|_]),
+    is_list(Forms), Forms = [_|_],
     forall(member(F, Forms), =(F, day_at(_, _))), !,
     % also assert that the day must be one of those days
     findall(Da, member(day_at(Da, _), Forms), Days),
