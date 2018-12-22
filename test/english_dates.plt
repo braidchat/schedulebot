@@ -6,8 +6,7 @@
 
 % Single datetime
 test(parse_normal_daytime_1) :-
-    string_codes("Monday at 14:00", Cs),
-    phrase(datetime_range(F), Cs),
+    phrase(datetime_range(F), `Monday at 14:00`),
     !, F = day_at(dow([monday]), hours([14])).
 
 test(parse_normal_daytime_2) :-
