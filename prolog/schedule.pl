@@ -121,7 +121,7 @@ datetimes_format(Ds, Fds) :-
     phrase(collapsed(Colled), Ds), !,
     maplist(format_range, Colled, Fds).
 
-format_range(range(MJD, Ns1, Ns1), S) :-
+format_range(range(MJD, Ns1, Ns1), S) :- !,
     datetime(Dt, MJD, Ns1),
     form_time(unix(Epoch), Dt),
     stamp_date_time(Epoch, DateTime, 'UTC'),
