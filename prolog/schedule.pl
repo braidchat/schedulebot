@@ -113,9 +113,9 @@ rfc_time(D, S) :-
     form_time(rfc3339(RfcCodes), D),
     string_codes(S, RfcCodes), !.
 
-%%  format_range(+Ds, -Fds) is det.
-% When Ds is a sorted list of datetimes, Fds is a list of nicely-formatted
-% range strings
+%! format_range(+Ds, -Fds) is det.
+%  When Ds is a sorted list of datetimes, Fds is a list of nicely-formatted
+%  range strings
 datetimes_format(Ds, Fds) :-
     % Cut to just get the most-collapsed ranges
     phrase(collapsed(Colled), Ds), !,
