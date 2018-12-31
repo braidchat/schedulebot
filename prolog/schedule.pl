@@ -147,7 +147,6 @@ adjacent_seq(MJD-Ns1, NsFinal) -->
 adjacent_seq(_-Ns1, Ns1) --> [].
 
 collapsed([]) --> [].
-collapsed([datetime(MJD, Ns)]) --> [range(MJD, Ns, Ns)].
 collapsed([range(MJD, Ns1, Ns2)|Rs]) -->
     [datetime(MJD, Ns1)],
     adjacent_seq(MJD-Ns1, Ns2),
