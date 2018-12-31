@@ -4,7 +4,7 @@
 :- use_module(library(julian/util), [dow_number/2]).
 :- use_module(library(list_util), [xfy_list/3]).
 
-ensure_list(X, X) :- is_list(X).
+ensure_list(X, X) :- is_list(X), !.
 ensure_list(X, [X]).
 
 % Extending Julian time forms so we can specify both specific hour
