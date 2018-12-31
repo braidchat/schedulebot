@@ -102,8 +102,7 @@ viable_time(Constraints, Dt) :-
     form_time(Constraints, Dt),
     form_time(_:00:00, Dt),
     julian:datetime(Dt, MJD, Nanos),
-    labeling([leftmost,up,bisect], [MJD]),
-    labeling([leftmost,up,bisect], [Nanos]).
+    labeling([ffc,bisect], [MJD, Nanos]).
 
 all_viable_times(Constraints, Ds) :-
     findall(D, viable_time(Constraints, D), Ds_),
