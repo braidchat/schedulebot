@@ -11,6 +11,7 @@
 :- use_module(library(dcg/basics), [integer//1]).
 :- use_module(library(http/http_client), [http_post/4, http_put/4]).
 :- use_module(library(settings), [setting/2]).
+:- use_module(library(http/http_ssl_plugin)).
 
 % Helpers for creating messages & sending to braid
 
