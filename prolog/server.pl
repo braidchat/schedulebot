@@ -33,7 +33,8 @@ run(Port) :-
     load_settings(Conf),
     setting(bot_db_file, DbFile),
     attach_threads_db(DbFile),
-    http_server(http_dispatch, [port(Port)]).
+    http_server(http_dispatch, [port(Port)]),
+    prolog. % start a toplevel to wait
 
 % Thread pool for message handler lazy creation
 :- multifile thread_pool:create_pool/1.
