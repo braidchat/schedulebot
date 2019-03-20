@@ -9,20 +9,28 @@
 :- use_module(library(julian/calendar/gregorian), [gregorian/3, month_number/2]).
 :- use_module(library(julian/util), [dow_number/2]).
 
-dow_shortform(mon, monday).
-dow_shortform(tue, tuesday).
-dow_shortform(wed, wednesday).
-dow_shortform(thu, thursday).
-dow_shortform(thur, thursday).
-dow_shortform(fri, friday).
-dow_shortform(sat, saturday).
-dow_shortform(sun, sunday).
-dow_shortform(X, X).
+dow_alternate(mon, monday).
+dow_alternate(tue, tuesday).
+dow_alternate(wed, wednesday).
+dow_alternate(thu, thursday).
+dow_alternate(thur, thursday).
+dow_alternate(fri, friday).
+dow_alternate(sat, saturday).
+dow_alternate(sun, sunday).
+dow_alternate(mondays, monday).
+dow_alternate(tuesdays, tuesday).
+dow_alternate(wednesdays, wednesday).
+dow_alternate(thursdays, thursday).
+dow_alternate(thursdays, thursday).
+dow_alternate(fridays, friday).
+dow_alternate(saturdays, saturday).
+dow_alternate(sundays, sunday).
+dow_alternate(X, X).
 
 codes_dow(Codes, Day) :-
     atom_codes(Atom, Codes),
     downcase_atom(Atom, Day_),
-    dow_shortform(Day_, Day),
+    dow_alternate(Day_, Day),
     dow_number(Day, _).
 
 month_shortform(jan, january).
